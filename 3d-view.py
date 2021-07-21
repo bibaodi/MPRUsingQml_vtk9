@@ -3,7 +3,7 @@ import os
 import sys
 import vtk
 
-k_data_dir="~/works/vtk-s/textbook-example-and-data/Data/headsq/"
+k_data_dir="/home/bibo/works/vtk-s/textbook-example-and-data/Data/headsq/"
 k_file_prefix="quarter"
 
 # Start by loading some data.
@@ -95,7 +95,7 @@ mode_widget = planeWidgetZ
 iact = vtk.vtkRenderWindowInteractor()
 iact.SetRenderWindow(renWin)
 
-style = vtk.vtkInteractorStyle()
+style = vtk.vtkInteractorStyleTrackballCamera()  #vtkInteractorStyle()
 iact.SetInteractorStyle(style)
 
 planeWidgetX.SetInteractor(iact)
@@ -105,7 +105,7 @@ planeWidgetY.On()
 planeWidgetZ.SetInteractor(iact)
 planeWidgetZ.On()
 # Create an initial interesting view
-ren.ResetCamera();
+ren.ResetCamera()
 cam1 = ren.GetActiveCamera()
 cam1.Elevation(110)
 cam1.SetViewUp(0, 0, -1)
