@@ -155,7 +155,40 @@ def main(argv):
 
         #style = vtk.vtkInteractorStyleTrackballCamera()  #vtkInteractorStyle()
         #iact.SetInteractorStyle(style)
+        def add_text(iact, ren, info='3D', location=(0.0, 0.9)):
+                # Create the TextActor
+                text_actor = vtk.vtkTextActor()
+                text_actor.SetInput(info)
+                text_actor.GetTextProperty().SetColor(colors.GetColor3d('Lime'))
 
+                # Create the text representation. Used for positioning the text_actor
+                text_representation = vtk.vtkTextRepresentation()
+                text_representation.ProportionalResizeOn()
+                text_representation.GetPositionCoordinate().SetValue(*location)
+                print("text_representation.GetProportionalResize=", text_representation.GetProportionalResize() )
+                #text_representation.GetPosition2Coordinate().SetValue(1.0, 1.0)
+
+                # Create the TextWidget
+                # Note that the SelectableOff method MUST be invoked!
+                # According to the documentation :
+                #
+                # SelectableOn/Off indicates whether the interior region of the widget can be
+                # selected or not. If not, then events (such as left mouse down) allow the user
+                # to 'move' the widget, and no selection is possible. Otherwise the
+                # SelectRegion() method is invoked.
+                text_widget = vtk.vtkTextWidget()
+                text_widget.SetRepresentation(text_representation)
+
+                text_widget.SetInteractor(iact)
+                text_widget.SetTextActor(text_actor)
+                text_widget.SelectableOff()
+                text_widget.SetCurrentRenderer(ren)
+                text_widget.On()
+                return text_widget
+        text_widget = add_text(iact, ren)
+        text_widget2 = add_text(iact, ren2, 'A', (0.9, 0.0))
+        text_widget3 = add_text(iact, ren3, 'C', (0.0, 0.0))
+        text_widget4 = add_text(iact, ren4, 'T', (0.9, 0.9))
 
         planeWidgetX.SetCurrentRenderer(ren)
         planeWidgetX.SetInteractor(iact)
@@ -168,6 +201,7 @@ def main(argv):
         planeWidgetZ.SetCurrentRenderer(ren)
         planeWidgetZ.SetInteractor(iact)
         planeWidgetZ.On()
+
         if 0:
                 # Create an initial interesting view
                 ren.ResetCamera()
