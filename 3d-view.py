@@ -5,115 +5,182 @@ import vtk
 
 k_data_dir="/home/bibo/works/vtk-s/textbook-example-and-data/Data/headsq/"
 k_file_prefix="quarter"
+def get_cone_mapper():
+        cone = vtk.vtkConeSource()
+        cone.SetHeight(3.0)
+        cone.SetRadius(1.0)
+        cone.SetResolution(10)
+        coneMapper = vtk.vtkPolyDataMapper()
+        coneMapper.SetInputConnection(cone.GetOutputPort())
+        return coneMapper
 
-# Start by loading some data.
-v16 = vtk.vtkVolume16Reader()
-v16.SetDataDimensions(64, 64)
-v16.SetDataByteOrderToLittleEndian()
-v16.SetFilePrefix(k_data_dir+k_file_prefix)
-v16.SetImageRange(1, 93)
-v16.SetDataSpacing(3.2, 3.2, 1.5)
-v16.Update()
+def main(argv):
+        colors = vtk.vtkNamedColors()
+        # Start by loading some data.
+        v16 = vtk.vtkVolume16Reader()
+        v16.SetDataDimensions(64, 64)
+        v16.SetDataByteOrderToLittleEndian()
+        v16.SetFilePrefix(k_data_dir+k_file_prefix)
+        v16.SetImageRange(1, 93)
+        v16.SetDataSpacing(3.2, 3.2, 1.5)
+        v16.Update()
 
-xMin, xMax, yMin, yMax, zMin, zMax = v16.GetExecutive().GetWholeExtent(v16.GetOutputInformation(0))
-v16_odata=v16.GetOutput()
-print(type(v16_odata), "dir(v16_odata)")
-spacing = v16_odata.GetSpacing()
-sx, sy, sz = spacing
-origin = v16_odata.GetOrigin()
-ox, oy, oz = origin
+        xMin, xMax, yMin, yMax, zMin, zMax = v16.GetExecutive().GetWholeExtent(v16.GetOutputInformation(0))
+        v16_odata=v16.GetOutput()
+        print(type(v16_odata), "dir(v16_odata)")
+        spacing = v16_odata.GetSpacing()
+        sx, sy, sz = spacing
+        origin = v16_odata.GetOrigin()
+        ox, oy, oz = origin
+        extent = v16_odata.GetExtent()
+        #v16 spacing: (3.2, 3.2, 1.5)
+        #origin: (0.0, 0.0, 0.0)
+        #extent: (0, 63, 0, 63, 0, 92)
+        print("v16 GetWholeExtent info x,y,z[min, max]: ", xMin, xMax, yMin, yMax, zMin, zMax)
+        print("v16 spacing:", spacing, "\norigin:", origin, "\nextent:", extent)
+        #-----------------------------------------------------------------
+        reslice4 = vtk.vtkImageReslice()
+        reslice4.SetInputConnection(v16.GetOutputPort())
+        reslice4.SetInterpolationModeToLinear()
+        reslice4.SetOutputSpacing(3.2,3.2,1.5)
+        reslice4.SetOutputOrigin(0,0,0)
+        reslice4.SetOutputExtent(0,63,0,63,0,0)
 
-print("v16 data info x,y,z[min, max]: ", xMin, xMax, yMin, yMax, zMin, zMax);
-print("v16 spacing:", spacing, "origin:", origin)
-#-----------------------------------------------------------------
-# An outline is shown for context.
-outline = vtk.vtkOutlineFilter()
-outline.SetInputConnection(v16.GetOutputPort())
+        mapper4 = vtk.vtkImageMapper()
+        mapper4.SetInputConnection(reslice4.GetOutputPort())
+        mapper4.SetColorWindow(2000)
+        mapper4.SetColorLevel(1000)
+        mapper4.SetZSlice(0)
 
-outlineMapper = vtk.vtkPolyDataMapper()
-outlineMapper.SetInputConnection(outline.GetOutputPort())
+        actor4 = vtk.vtkActor2D()
+        actor4.SetMapper(mapper4)
 
-outlineActor = vtk.vtkActor()
-outlineActor.SetMapper(outlineMapper)
+        #--------------------------------
+        outlineMapper = vtk.vtkPolyDataMapper()
+        if 1:
+                # An outline is shown for context.
+                outline = vtk.vtkOutlineFilter()
+                outline.SetInputConnection(v16.GetOutputPort())
+                outlineMapper.SetInputConnection(outline.GetOutputPort())
+        else:
+                outlineMapper.SetInputConnection(v16.GetOutputPort())
 
-# The shared picker enables us to use 3 planes at one time
-# and gets the picking order right
-picker = vtk.vtkCellPicker()
-picker.SetTolerance(0.005)
+        outlineActor = vtk.vtkActor()
+        outlineActor.SetMapper(outlineMapper)
+        planeActor = vtk.vtkActor()
+        planeActor.SetMapper(get_cone_mapper())
 
-# The 3 image plane widgets are used to probe the dataset.
-planeWidgetX = vtk.vtkImagePlaneWidget()
-planeWidgetX.DisplayTextOn()
-planeWidgetX.SetInputConnection(v16.GetOutputPort())
-planeWidgetX.SetPlaneOrientationToXAxes()
-planeWidgetX.SetSliceIndex(32)
-planeWidgetX.SetPicker(picker)
-planeWidgetX.SetKeyPressActivationValue("x")
-prop1 = planeWidgetX.GetPlaneProperty()
-prop1.SetColor(1, 0, 0)
+        # The shared picker enables us to use 3 planes at one time
+        # and gets the picking order right
+        picker = vtk.vtkCellPicker()
+        picker.SetTolerance(0.005)
 
-planeWidgetY = vtk.vtkImagePlaneWidget()
-planeWidgetY.DisplayTextOn()
-planeWidgetY.SetInputConnection(v16.GetOutputPort())
-planeWidgetY.SetPlaneOrientationToYAxes()
-planeWidgetY.SetSliceIndex(32)
-planeWidgetY.SetPicker(picker)
-planeWidgetY.SetKeyPressActivationValue("y")
-prop2 = planeWidgetY.GetPlaneProperty()
-prop2.SetColor(1, 1, 0)
-planeWidgetY.SetLookupTable(planeWidgetX.GetLookupTable())
+        # The 3 image plane widgets are used to probe the dataset.
+        planeWidgetX = vtk.vtkImagePlaneWidget()
+        planeWidgetX.DisplayTextOn()
+        planeWidgetX.SetInputConnection(v16.GetOutputPort())
+        planeWidgetX.SetPlaneOrientationToXAxes()
+        planeWidgetX.SetSliceIndex(32)
+        planeWidgetX.SetPicker(picker)
+        planeWidgetX.SetKeyPressActivationValue("x")
+        prop1 = planeWidgetX.GetPlaneProperty()
+        prop1.SetColor(1, 0, 0)
 
-# for the z-slice, turn off texture interpolation:
-# interpolation is now nearest neighbour, to demonstrate
-# cross-hair cursor snapping to pixel centers
-planeWidgetZ = vtk.vtkImagePlaneWidget()
-planeWidgetZ.DisplayTextOn()
-planeWidgetZ.SetInputConnection(v16.GetOutputPort())
-planeWidgetZ.SetPlaneOrientationToZAxes()
-planeWidgetZ.SetSliceIndex(46)
-planeWidgetZ.SetPicker(picker)
-planeWidgetZ.SetKeyPressActivationValue("z")
-prop3 = planeWidgetZ.GetPlaneProperty()
-prop3.SetColor(0, 0, 1)
-planeWidgetZ.SetLookupTable(planeWidgetX.GetLookupTable())
+        planeWidgetY = vtk.vtkImagePlaneWidget()
+        planeWidgetY.DisplayTextOn()
+        planeWidgetY.SetInputConnection(v16.GetOutputPort())
+        planeWidgetY.SetPlaneOrientationToYAxes()
+        planeWidgetY.SetSliceIndex(32)
+        planeWidgetY.SetPicker(picker)
+        planeWidgetY.SetKeyPressActivationValue("y")
+        prop2 = planeWidgetY.GetPlaneProperty()
+        prop2.SetColor(1, 1, 0)
+        planeWidgetY.SetLookupTable(planeWidgetX.GetLookupTable())
 
-# Create the RenderWindow and Renderer
-ren = vtk.vtkRenderer()
-renWin = vtk.vtkRenderWindow()
-renWin.AddRenderer(ren)
+        # for the z-slice, turn off texture interpolation:
+        # interpolation is now nearest neighbour, to demonstrate
+        # cross-hair cursor snapping to pixel centers
+        planeWidgetZ = vtk.vtkImagePlaneWidget()
+        planeWidgetZ.DisplayTextOn()
+        planeWidgetZ.SetInputConnection(v16.GetOutputPort())
+        planeWidgetZ.SetPlaneOrientationToZAxes()
+        planeWidgetZ.SetSliceIndex(46)
+        planeWidgetZ.SetPicker(picker)
+        planeWidgetZ.SetKeyPressActivationValue("z")
+        prop3 = planeWidgetZ.GetPlaneProperty()
+        prop3.SetColor(0, 0, 1)
+        planeWidgetZ.SetLookupTable(planeWidgetX.GetLookupTable())
 
-# Add the outline actor to the renderer, set the background color and size
-ren.AddActor(outlineActor)
-renWin.SetSize(600, 600)
-ren.SetBackground(0.1, 0.1, 0.2)
+        # Create the RenderWindow and Renderer
+        ren = vtk.vtkRenderer()
+        ren2 = vtk.vtkRenderer()
+        ren3 = vtk.vtkRenderer()
+        ren4 = vtk.vtkRenderer()
+        renWin = vtk.vtkRenderWindow()
+        renWin.SetSize(600, 600)
 
-current_widget = planeWidgetZ
-mode_widget = planeWidgetZ
+        # Add the outline actor to the renderer, set the background color and size
+        ren.AddActor(outlineActor)
+        ren.SetBackground(colors.GetColor3d('violet_dark'))
+        ren.SetViewport(0.51, 0.0, 1.0, 0.49)  # Coordinates are expressed as (xmin,ymin,xmax,ymax), where each coordinate is 0 <= coordinate <= 1.0.
 
-#:help CTRL-V-alternative 
-#Set the interactor for the widgets
-iact = vtk.vtkRenderWindowInteractor()
-iact.SetRenderWindow(renWin)
+        # config 2nd render
+        ren2.AddActor(planeActor)
+        ren2.SetBackground(colors.GetColor3d('Tomato'))
+        ren2.SetViewport(0.0, 0.51, 0.49, 1.0)
 
-style = vtk.vtkInteractorStyleTrackballCamera()  #vtkInteractorStyle()
-iact.SetInteractorStyle(style)
+        # config 3rd render right-top
+        ren3.AddActor(planeActor)
+        ren3.SetBackground(colors.GetColor3d('green_yellow'))
+        ren3.SetViewport(0.51, 0.51, 1.0, 1.0)
 
-planeWidgetX.SetInteractor(iact)
-planeWidgetX.On()
-planeWidgetY.SetInteractor(iact)
-planeWidgetY.On()
-planeWidgetZ.SetInteractor(iact)
-planeWidgetZ.On()
-# Create an initial interesting view
-ren.ResetCamera()
-cam1 = ren.GetActiveCamera()
-cam1.Elevation(110)
-cam1.SetViewUp(0, 0, -1)
-cam1.Azimuth(45)
-ren.ResetCameraClippingRange()
-iact.Initialize()
-#renWin.Render()
-iact.Start()
+        # config 4th render left-bottom
+        ren4.AddActor2D(actor4)
+        ren4.SetBackground(colors.GetColor3d('DodgerBlue'))
+        ren4.SetViewport(0.0, 0.0, 0.49, 0.49)
+
+        renWin.AddRenderer(ren2)
+        renWin.AddRenderer(ren3)
+        renWin.AddRenderer(ren4) # 
+        renWin.AddRenderer(ren) # eton bug--正交视图只能显示到第三个render中，与数量以及顺序都有关系，小于4个时候，最后显示正确，＞3个时候在哪里都不正确了
+
+        
+        current_widget = planeWidgetZ
+        mode_widget = planeWidgetZ
+
+        #:help CTRL-V-alternative 
+        #Set the interactor for the widgets
+        iact = vtk.vtkRenderWindowInteractor()
+        iact.SetRenderWindow(renWin)
+
+        #style = vtk.vtkInteractorStyleTrackballCamera()  #vtkInteractorStyle()
+        #iact.SetInteractorStyle(style)
+
+
+        planeWidgetX.SetCurrentRenderer(ren)
+        planeWidgetX.SetInteractor(iact)
+        planeWidgetX.On()
+        
+        planeWidgetY.SetCurrentRenderer(ren)
+        planeWidgetY.SetInteractor(iact)
+        planeWidgetY.On()
+        
+        planeWidgetZ.SetCurrentRenderer(ren)
+        planeWidgetZ.SetInteractor(iact)
+        planeWidgetZ.On()
+        if 0:
+                # Create an initial interesting view
+                ren.ResetCamera()
+                cam1 = ren.GetActiveCamera()
+                cam1.Elevation(110)
+                cam1.SetViewUp(0, 0, -1)
+                cam1.Azimuth(45)
+                ren.ResetCameraClippingRange()
+        iact.Initialize()
+        #renWin.Render()
+        iact.Start()
 #============================================
 if "__main__" == __name__:
     print("using pvtkPython:starting 3d view")
+    main(sys.argv)
+    print("process end~~~")
