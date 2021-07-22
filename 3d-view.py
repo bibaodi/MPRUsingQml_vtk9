@@ -2,6 +2,7 @@
 import os
 import sys
 import vtk
+import copy
 
 k_data_dir="/home/bibo/works/vtk-s/textbook-example-and-data/Data/headsq/"
 k_file_prefix="quarter"
@@ -39,21 +40,22 @@ def main(argv):
         print("v16 GetWholeExtent info x,y,z[min, max]: ", xMin, xMax, yMin, yMax, zMin, zMax)
         print("v16 spacing:", spacing, "\norigin:", origin, "\nextent:", extent)
         #-----------------------------------------------------------------
-        reslice4 = vtk.vtkImageReslice()
-        reslice4.SetInputConnection(v16.GetOutputPort())
-        reslice4.SetInterpolationModeToLinear()
-        reslice4.SetOutputSpacing(3.2,3.2,1.5)
-        reslice4.SetOutputOrigin(0,0,0)
-        reslice4.SetOutputExtent(0,63,0,63,0,0)
+        def create_reslice():# reslice it no need now for MPR
+                reslice4 = vtk.vtkImageReslice()
+                reslice4.SetInputConnection(v16.GetOutputPort())
+                reslice4.SetInterpolationModeToLinear()
+                reslice4.SetOutputSpacing(3.2,3.2,1.5)
+                reslice4.SetOutputOrigin(0,0,0)
+                reslice4.SetOutputExtent(0,63,0,63,0,0)
 
-        mapper4 = vtk.vtkImageMapper()
-        mapper4.SetInputConnection(reslice4.GetOutputPort())
-        mapper4.SetColorWindow(2000)
-        mapper4.SetColorLevel(1000)
-        mapper4.SetZSlice(0)
+                mapper4 = vtk.vtkImageMapper()
+                mapper4.SetInputConnection(reslice4.GetOutputPort())
+                mapper4.SetColorWindow(2000)
+                mapper4.SetColorLevel(1000)
+                mapper4.SetZSlice(0)
 
-        actor4 = vtk.vtkActor2D()
-        actor4.SetMapper(mapper4)
+                actor4 = vtk.vtkActor2D()
+                actor4.SetMapper(mapper4)
 
         #--------------------------------
         outlineMapper = vtk.vtkPolyDataMapper()
@@ -76,40 +78,53 @@ def main(argv):
         picker.SetTolerance(0.005)
 
         # The 3 image plane widgets are used to probe the dataset.
-        planeWidgetX = vtk.vtkImagePlaneWidget()
-        planeWidgetX.DisplayTextOn()
-        planeWidgetX.SetInputConnection(v16.GetOutputPort())
-        planeWidgetX.SetPlaneOrientationToXAxes()
-        planeWidgetX.SetSliceIndex(32)
-        planeWidgetX.SetPicker(picker)
-        planeWidgetX.SetKeyPressActivationValue("x")
-        prop1 = planeWidgetX.GetPlaneProperty()
-        prop1.SetColor(1, 0, 0)
+        def get_planeWidget_instance(orientation='x'):
+                imgPlaneWidget = vtk.vtkImagePlaneWidget()
+                imgPlaneWidget.DisplayTextOn()
+                imgPlaneWidget.SetInputConnection(v16.GetOutputPort())
+                imgPlaneWidget.SetSliceIndex(32)
+                imgPlaneWidget.SetPicker(picker)
+                prop_color=(1, 0, 0)
+                if 'x' == orientation.lower():
+                        imgPlaneWidget.SetPlaneOrientationToXAxes()
+                        imgPlaneWidget.SetKeyPressActivationValue("x")
+                        prop_color=(1, 0, 0)
+                elif 'y' == orientation.lower():
+                        imgPlaneWidget.SetPlaneOrientationToYAxes()
+                        imgPlaneWidget.SetKeyPressActivationValue("y")
+                        prop_color=(1, 1, 0)
+                elif 'z' == orientation.lower():
+                        imgPlaneWidget.SetPlaneOrientationToZAxes()
+                        imgPlaneWidget.SetKeyPressActivationValue("z")
+                        prop_color=(0, 0, 1)
+                prop1 = imgPlaneWidget.GetPlaneProperty()
+                prop1.SetColor(*prop_color)
+                return imgPlaneWidget
 
-        planeWidgetY = vtk.vtkImagePlaneWidget()
-        planeWidgetY.DisplayTextOn()
-        planeWidgetY.SetInputConnection(v16.GetOutputPort())
-        planeWidgetY.SetPlaneOrientationToYAxes()
+        planeWidgetX = get_planeWidget_instance('x')
+        planeWidgetX.SetSliceIndex(32)
+        
+        planeWidgetY = get_planeWidget_instance('y')
         planeWidgetY.SetSliceIndex(32)
-        planeWidgetY.SetPicker(picker)
-        planeWidgetY.SetKeyPressActivationValue("y")
-        prop2 = planeWidgetY.GetPlaneProperty()
-        prop2.SetColor(1, 1, 0)
-        planeWidgetY.SetLookupTable(planeWidgetX.GetLookupTable())
+
+        #planeWidgetY.SetLookupTable(planeWidgetX.GetLookupTable())
 
         # for the z-slice, turn off texture interpolation:
         # interpolation is now nearest neighbour, to demonstrate
         # cross-hair cursor snapping to pixel centers
-        planeWidgetZ = vtk.vtkImagePlaneWidget()
-        planeWidgetZ.DisplayTextOn()
-        planeWidgetZ.SetInputConnection(v16.GetOutputPort())
-        planeWidgetZ.SetPlaneOrientationToZAxes()
+        planeWidgetZ = get_planeWidget_instance('z')
         planeWidgetZ.SetSliceIndex(46)
-        planeWidgetZ.SetPicker(picker)
-        planeWidgetZ.SetKeyPressActivationValue("z")
-        prop3 = planeWidgetZ.GetPlaneProperty()
-        prop3.SetColor(0, 0, 1)
         planeWidgetZ.SetLookupTable(planeWidgetX.GetLookupTable())
+
+
+        def create_3_imgPlaneWidgets(option=0):
+                planeWidgetA = get_planeWidget_instance('x')
+                planeWidgetA.SetSliceIndex(32)
+                planeWidgetC = get_planeWidget_instance('y')
+                planeWidgetC.SetSliceIndex(32)
+                planeWidgetT = get_planeWidget_instance('z')
+                planeWidgetT.SetSliceIndex(46)
+                return [planeWidgetA, planeWidgetC, planeWidgetT]
 
         # Create the RenderWindow and Renderer
         ren = vtk.vtkRenderer()
@@ -125,17 +140,17 @@ def main(argv):
         ren.SetViewport(0.51, 0.0, 1.0, 0.49)  # Coordinates are expressed as (xmin,ymin,xmax,ymax), where each coordinate is 0 <= coordinate <= 1.0.
 
         # config 2nd render
-        ren2.AddActor(planeActor)
+        #ren2.AddActor(planeActor)
         ren2.SetBackground(colors.GetColor3d('Tomato'))
         ren2.SetViewport(0.0, 0.51, 0.49, 1.0)
 
         # config 3rd render right-top
-        ren3.AddActor(planeActor)
+        #ren3.AddActor(planeActor)
         ren3.SetBackground(colors.GetColor3d('green_yellow'))
         ren3.SetViewport(0.51, 0.51, 1.0, 1.0)
 
         # config 4th render left-bottom
-        ren4.AddActor2D(actor4)
+        #ren4.AddActor2D(actor4)
         ren4.SetBackground(colors.GetColor3d('DodgerBlue'))
         ren4.SetViewport(0.0, 0.0, 0.49, 0.49)
 
@@ -144,9 +159,6 @@ def main(argv):
         renWin.AddRenderer(ren4) # 
         renWin.AddRenderer(ren) # eton bug--正交视图只能显示到第三个render中，与数量以及顺序都有关系，小于4个时候，最后显示正确，＞3个时候在哪里都不正确了
 
-        
-        current_widget = planeWidgetZ
-        mode_widget = planeWidgetZ
 
         #:help CTRL-V-alternative 
         #Set the interactor for the widgets
@@ -155,7 +167,7 @@ def main(argv):
 
         #style = vtk.vtkInteractorStyleTrackballCamera()  #vtkInteractorStyle()
         #iact.SetInteractorStyle(style)
-        def add_text(iact, ren, info='3D', location=(0.0, 0.9)):
+        def add_text_label(iact, ren, info='3D', location=(0.0, 0.9)):
                 # Create the TextActor
                 text_actor = vtk.vtkTextActor()
                 text_actor.SetInput(info)
@@ -185,31 +197,35 @@ def main(argv):
                 text_widget.SetCurrentRenderer(ren)
                 text_widget.On()
                 return text_widget
-        text_widget = add_text(iact, ren)
-        text_widget2 = add_text(iact, ren2, 'A', (0.9, 0.0))
-        text_widget3 = add_text(iact, ren3, 'C', (0.0, 0.0))
-        text_widget4 = add_text(iact, ren4, 'T', (0.9, 0.9))
-
-        planeWidgetX.SetCurrentRenderer(ren)
-        planeWidgetX.SetInteractor(iact)
-        planeWidgetX.On()
         
-        planeWidgetY.SetCurrentRenderer(ren)
-        planeWidgetY.SetInteractor(iact)
-        planeWidgetY.On()
-        
-        planeWidgetZ.SetCurrentRenderer(ren)
-        planeWidgetZ.SetInteractor(iact)
-        planeWidgetZ.On()
+        text_widget = add_text_label(iact, ren)
+        text_widget2 = add_text_label(iact, ren2, 'A', (0.9, 0.0))
+        text_widget3 = add_text_label(iact, ren3, 'C', (0.0, 0.0))
+        text_widget4 = add_text_label(iact, ren4, 'T', (0.9, 0.9))
 
-        if 0:
+        def enable_3d_view_imgPlaneWidges(widgets, ren, iact):
+                for imgPlaneWidget in widgets:
+                        imgPlaneWidget.SetCurrentRenderer(ren)
+                        imgPlaneWidget.SetInteractor(iact)
+                        imgPlaneWidget.On()
+
+        enable_3d_view_imgPlaneWidges([planeWidgetX, planeWidgetY, planeWidgetZ], ren, iact)
+        viewA=create_3_imgPlaneWidgets()
+        enable_3d_view_imgPlaneWidges(viewA, ren2, iact)
+        viewB=create_3_imgPlaneWidgets()
+        enable_3d_view_imgPlaneWidges(viewB, ren3, iact)
+        viewC=create_3_imgPlaneWidgets()
+        enable_3d_view_imgPlaneWidges(viewC, ren4, iact)
+
+        def create_initial_view(render):
                 # Create an initial interesting view
-                ren.ResetCamera()
-                cam1 = ren.GetActiveCamera()
+                render.ResetCamera()
+                cam1 = render.GetActiveCamera()
                 cam1.Elevation(110)
                 cam1.SetViewUp(0, 0, -1)
                 cam1.Azimuth(45)
-                ren.ResetCameraClippingRange()
+                render.ResetCameraClippingRange()
+        create_initial_view(ren)
         iact.Initialize()
         #renWin.Render()
         iact.Start()
