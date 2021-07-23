@@ -197,11 +197,25 @@ def main(argv):
                 text_widget.SetCurrentRenderer(ren)
                 text_widget.On()
                 return text_widget
+
+        def add_text_label2(render):
+                text = vtk.vtkTextActor()
+                text.SetInput('T')
+                tprop = text.GetTextProperty()
+                tprop.SetFontFamilyToArial()
+                tprop.ShadowOff()
+                tprop.SetLineSpacing(1.0)
+                tprop.SetFontSize(31)
+                tprop.SetColor(colors.GetColor3d('antique_white'))
+                text.SetDisplayPosition(280, 260)
+                render.AddActor2D(text)
+                return text
         
         text_widget = add_text_label(iact, ren)
         text_widget2 = add_text_label(iact, ren2, 'A', (0.9, 0.0))
         text_widget3 = add_text_label(iact, ren3, 'C', (0.0, 0.0))
         text_widget4 = add_text_label(iact, ren4, 'T', (0.9, 0.9))
+
 
         def enable_3d_view_imgPlaneWidges(widgets, ren, iact):
                 for imgPlaneWidget in widgets:
@@ -217,7 +231,7 @@ def main(argv):
         viewC=create_3_imgPlaneWidgets()
         enable_3d_view_imgPlaneWidges(viewC, ren4, iact)
 
-        def create_initial_view(render):
+        def create_3d_initial_view(render):
                 # Create an initial interesting view
                 render.ResetCamera()
                 cam1 = render.GetActiveCamera()
@@ -225,7 +239,19 @@ def main(argv):
                 cam1.SetViewUp(0, 0, -1)
                 cam1.Azimuth(45)
                 render.ResetCameraClippingRange()
-        create_initial_view(ren)
+        create_3d_initial_view(ren)
+
+        def create_plane_initial_view(render, plane='x'):
+                render.ResetCamera()
+                cam1 = render.GetActiveCamera()
+                print("viewup=",cam1.GetViewUp(), "GetViewAngle=", cam1.GetViewAngle(), "GetPosition=", cam1.GetPosition())
+                cam1.Azimuth(90)
+                print("viewup=",cam1.GetViewUp(), "GetViewAngle=", cam1.GetViewAngle(), "GetPosition=", cam1.GetPosition())
+                #render.ResetCameraClippingRange()
+
+        create_plane_initial_view(ren2)
+        t3d = add_text_label2(ren4)
+
         iact.Initialize()
         #renWin.Render()
         iact.Start()
