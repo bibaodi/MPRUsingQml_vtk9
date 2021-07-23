@@ -198,23 +198,30 @@ def main(argv):
                 text_widget.On()
                 return text_widget
 
-        def add_text_label2(render):
+        def add_text_label2(render, label='3D'):
                 text = vtk.vtkTextActor()
-                text.SetInput('T')
+                text.SetInput(label)
                 tprop = text.GetTextProperty()
                 tprop.SetFontFamilyToArial()
                 tprop.ShadowOff()
                 tprop.SetLineSpacing(1.0)
                 tprop.SetFontSize(31)
                 tprop.SetColor(colors.GetColor3d('antique_white'))
-                text.SetDisplayPosition(280, 260)
+                if 'A' == label:
+                        text.SetDisplayPosition(270, 300)
+                elif 'C' == label:
+                        text.SetDisplayPosition(310, 300)
+                elif 'T' ==label:
+                        text.SetDisplayPosition(270, 260)
+                else:
+                        text.SetDisplayPosition(310, 260)
                 render.AddActor2D(text)
                 return text
-        
-        text_widget = add_text_label(iact, ren)
-        text_widget2 = add_text_label(iact, ren2, 'A', (0.9, 0.0))
-        text_widget3 = add_text_label(iact, ren3, 'C', (0.0, 0.0))
-        text_widget4 = add_text_label(iact, ren4, 'T', (0.9, 0.9))
+        if 0:
+                text_widget = add_text_label(iact, ren)
+                text_widget2 = add_text_label(iact, ren2, 'A', (0.9, 0.0))
+                text_widget3 = add_text_label(iact, ren3, 'C', (0.0, 0.0))
+                text_widget4 = add_text_label(iact, ren4, 'T', (0.9, 0.9))
 
 
         def enable_3d_view_imgPlaneWidges(widgets, ren, iact):
@@ -239,18 +246,32 @@ def main(argv):
                 cam1.SetViewUp(0, 0, -1)
                 cam1.Azimuth(45)
                 render.ResetCameraClippingRange()
-        create_3d_initial_view(ren)
 
         def create_plane_initial_view(render, plane='x'):
                 render.ResetCamera()
                 cam1 = render.GetActiveCamera()
                 print("viewup=",cam1.GetViewUp(), "GetViewAngle=", cam1.GetViewAngle(), "GetPosition=", cam1.GetPosition())
-                cam1.Azimuth(90)
+                if 'x' == plane.lower():
+                        cam1.Azimuth(90)
+                elif 'y' == plane.lower():
+                        cam1.Elevation(90)
+                        cam1.SetViewUp(0, -1, 0)
+                else:
+                        print("default is z")
+                        pass
+
                 print("viewup=",cam1.GetViewUp(), "GetViewAngle=", cam1.GetViewAngle(), "GetPosition=", cam1.GetPosition())
                 #render.ResetCameraClippingRange()
 
-        create_plane_initial_view(ren2)
-        t3d = add_text_label2(ren4)
+        create_3d_initial_view(ren)
+        create_plane_initial_view(ren2, 'x')
+        create_plane_initial_view(ren3, 'y')
+        create_plane_initial_view(ren4, 'z')
+        if 1: #add label text
+                label_a = add_text_label2(ren2,'A')
+                label_c = add_text_label2(ren3,'C')
+                label_t = add_text_label2(ren4,'T')
+                label_3d = add_text_label2(ren,'3D')
 
         iact.Initialize()
         #renWin.Render()
