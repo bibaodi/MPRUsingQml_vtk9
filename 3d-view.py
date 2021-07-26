@@ -15,6 +15,24 @@ def get_cone_mapper():
         coneMapper.SetInputConnection(cone.GetOutputPort())
         return coneMapper
 
+class  Style_BlockMouseAction(vtk.vtkInteractorStyleTrackballCamera):
+    def __init__(self, parent = None):
+               
+        self.AddObserver("MouseMoveEvent", self.MouseMoveEvent)
+       
+        self.AddObserver("MouseWheelForwardEvent", self.MouseWheelForwardEvent)
+      
+        self.AddObserver("MouseWheelBackwardEvent", self.MouseWheelBackwardEvent)
+
+    def MouseMoveEvent(self, obj, event):
+        pass
+
+    def MouseWheelBackwardEvent(self, obj, event):
+        pass
+
+    def MouseWheelForwardEvent(self, obj, event):
+        pass
+
 def main(argv):
         colors = vtk.vtkNamedColors()
         # Start by loading some data.
@@ -165,8 +183,9 @@ def main(argv):
         iact = vtk.vtkRenderWindowInteractor()
         iact.SetRenderWindow(renWin)
 
-        #style = vtk.vtkInteractorStyleTrackballCamera()  #vtkInteractorStyle()
-        #iact.SetInteractorStyle(style)
+
+        style = Style_BlockMouseAction()  #vtkInteractorStyle()
+        iact.SetInteractorStyle(style)
         def add_text_label(iact, ren, info='3D', location=(0.0, 0.9)):
                 # Create the TextActor
                 text_actor = vtk.vtkTextActor()
@@ -224,13 +243,22 @@ def main(argv):
                 text_widget4 = add_text_label(iact, ren4, 'T', (0.9, 0.9))
 
 
-        def enable_3d_view_imgPlaneWidges(widgets, ren, iact):
+        def enable_3d_view_imgPlaneWidges(widgets, ren, iact=None, is3d=False):
                 for imgPlaneWidget in widgets:
                         imgPlaneWidget.SetCurrentRenderer(ren)
-                        imgPlaneWidget.SetInteractor(iact)
+                        if None !=iact:
+                                imgPlaneWidget.SetInteractor(iact)
                         imgPlaneWidget.On()
+                        print("GetMarginSizeX:", imgPlaneWidget.GetMarginSizeX())
+                        if not is3d:
+                                #imgPlaneWidget.SetRightButtonAction(0)
+                                print("enable_3d_view_imgPlaneWidges:", "default interaction:", imgPlaneWidget.GetInteraction())
+                                imgPlaneWidget.InteractionOff()
+                                print("enable_3d_view_imgPlaneWidges:", "after interaction:", imgPlaneWidget.GetInteraction())
 
-        enable_3d_view_imgPlaneWidges([planeWidgetX, planeWidgetY, planeWidgetZ], ren, iact)
+                                
+
+        enable_3d_view_imgPlaneWidges([planeWidgetX, planeWidgetY, planeWidgetZ], ren, iact, True)
         viewA=create_3_imgPlaneWidgets()
         enable_3d_view_imgPlaneWidges(viewA, ren2, iact)
         viewB=create_3_imgPlaneWidgets()

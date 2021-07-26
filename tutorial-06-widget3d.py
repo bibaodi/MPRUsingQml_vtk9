@@ -122,6 +122,7 @@ def main(argv):
     # we will manually enable it so it appears with the cone.
     #
     boxWidget.On()
+    print(dir(boxWidget))
 
     #
     # Start the event loop.
