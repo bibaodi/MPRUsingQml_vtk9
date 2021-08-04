@@ -140,6 +140,8 @@ class vtkMyCallback(object):
         t = vtk.vtkTransform()
         widget = caller
         widget.GetTransform(t)
+        #caller:<class 'vtkmodules.vtkInteractionWidgets.vtkBoxWidget'>, id:140712775396032 ev:<class 'str'>      InteractionEvent
+        print(f"caller:{type(caller)}, id:{id(caller)}",  f"ev:{type(ev)}\t {ev}", f"\tt={t}")
         widget.GetProp3D().SetUserTransform(t)
 
 

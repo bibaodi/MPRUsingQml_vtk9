@@ -6,6 +6,12 @@ import copy
 
 k_data_dir="/home/bibo/works/vtk-s/textbook-example-and-data/Data/headsq/"
 k_file_prefix="quarter"
+
+subViewA=None
+subViewC=None
+subViewT=None
+
+
 def get_cone_mapper():
         cone = vtk.vtkConeSource()
         cone.SetHeight(3.0)
@@ -20,11 +26,12 @@ class  Style_BlockMouseAction(vtk.vtkInteractorStyleTrackballCamera):
                
         self.AddObserver("MouseMoveEvent", self.MouseMoveEvent)
        
-        self.AddObserver("MouseWheelForwardEvent", self.MouseWheelForwardEvent)
+        #self.AddObserver("MouseWheelForwardEvent", self.MouseWheelForwardEvent)
       
-        self.AddObserver("MouseWheelBackwardEvent", self.MouseWheelBackwardEvent)
+        #self.AddObserver("MouseWheelBackwardEvent", self.MouseWheelBackwardEvent)
 
     def MouseMoveEvent(self, obj, event):
+        # 其实这里可以通过判断鼠标的位置进行分区域的事件屏蔽~
         pass
 
     def MouseWheelBackwardEvent(self, obj, event):
@@ -32,6 +39,36 @@ class  Style_BlockMouseAction(vtk.vtkInteractorStyleTrackballCamera):
 
     def MouseWheelForwardEvent(self, obj, event):
         pass
+
+class vtkMyCallback(object):
+    """
+    Callback for the interaction.
+    """
+
+    def __init__(self, renderer):
+        self.renderer = renderer
+
+    def __call__(self, caller, ev):
+        #caller is the render which AddObserver; ev is str current value=StartEvent
+        position = self.renderer.GetActiveCamera().GetPosition()
+        print(f"caller:{type(caller)}, id:{id(caller)}",  f"ev:{type(ev)}\t {ev}")
+        print('vtkMyCallback position:({:5.2f}, {:5.2f}, {:5.2f})'.format(*position))
+
+class vtkCallBack4IPW(object):
+    """
+    Callback for image plane widget
+    """
+    def __call__(self, caller, ev):
+        print(f"vtkCallBack4IPW:\n\tcaller:{type(caller)}, id:{id(caller)}",  f"ev:{type(ev)}\t {ev}")
+        slice_idx = caller.GetSliceIndex()
+        slice_pos = caller.GetSlicePosition()
+        print(f"slice index={slice_idx}, pos={slice_pos}")
+        global subViewA
+        global subViewC
+        global subViewT
+        subViewA[0].SetSlicePosition(slice_pos)
+        subViewC[0].SetSlicePosition(slice_pos)
+        subViewT[0].SetSlicePosition(slice_pos)
 
 def main(argv):
         colors = vtk.vtkNamedColors()
@@ -121,6 +158,9 @@ def main(argv):
 
         planeWidgetX = get_planeWidget_instance('x')
         planeWidgetX.SetSliceIndex(32)
+        #add observer to IPW
+        callback_x = vtkCallBack4IPW()
+        planeWidgetX.AddObserver('AnyEvent', callback_x)
         
         planeWidgetY = get_planeWidget_instance('y')
         planeWidgetY.SetSliceIndex(32)
@@ -136,13 +176,13 @@ def main(argv):
 
 
         def create_3_imgPlaneWidgets(option=0):
-                planeWidgetA = get_planeWidget_instance('x')
-                planeWidgetA.SetSliceIndex(32)
-                planeWidgetC = get_planeWidget_instance('y')
-                planeWidgetC.SetSliceIndex(32)
-                planeWidgetT = get_planeWidget_instance('z')
-                planeWidgetT.SetSliceIndex(46)
-                return [planeWidgetA, planeWidgetC, planeWidgetT]
+                _planeWidgetX = get_planeWidget_instance('x')
+                _planeWidgetX.SetSliceIndex(32)
+                _planeWidgetY = get_planeWidget_instance('y')
+                _planeWidgetY.SetSliceIndex(32)
+                _planeWidgetZ = get_planeWidget_instance('z')
+                _planeWidgetZ.SetSliceIndex(46)
+                return [_planeWidgetX, _planeWidgetY, _planeWidgetZ]
 
         # Create the RenderWindow and Renderer
         ren = vtk.vtkRenderer()
@@ -176,6 +216,12 @@ def main(argv):
         renWin.AddRenderer(ren3)
         renWin.AddRenderer(ren4) # 
         renWin.AddRenderer(ren) # eton bug--正交视图只能显示到第三个render中，与数量以及顺序都有关系，小于4个时候，最后显示正确，＞3个时候在哪里都不正确了
+        
+        if 0:
+                # Here is where we setup the observer.
+                mo1 = vtkMyCallback(ren)
+                ren.AddObserver('StartEvent', mo1)
+                print(f"ren id={id(ren)}; ren2 id={id(ren2)}")
 
 
         #:help CTRL-V-alternative 
@@ -257,14 +303,16 @@ def main(argv):
                                 print("enable_3d_view_imgPlaneWidges:", "after interaction:", imgPlaneWidget.GetInteraction())
 
                                 
-
+        global subViewA
+        global subViewC
+        global subViewT
         enable_3d_view_imgPlaneWidges([planeWidgetX, planeWidgetY, planeWidgetZ], ren, iact, True)
-        viewA=create_3_imgPlaneWidgets()
-        enable_3d_view_imgPlaneWidges(viewA, ren2, iact)
-        viewB=create_3_imgPlaneWidgets()
-        enable_3d_view_imgPlaneWidges(viewB, ren3, iact)
-        viewC=create_3_imgPlaneWidgets()
-        enable_3d_view_imgPlaneWidges(viewC, ren4, iact)
+        subViewA=create_3_imgPlaneWidgets()
+        enable_3d_view_imgPlaneWidges(subViewA, ren2, iact)
+        subViewC=create_3_imgPlaneWidgets()
+        enable_3d_view_imgPlaneWidges(subViewC, ren3, iact)
+        subViewT=create_3_imgPlaneWidgets()
+        enable_3d_view_imgPlaneWidges(subViewT, ren4, iact)
 
         def create_3d_initial_view(render):
                 # Create an initial interesting view
@@ -281,13 +329,15 @@ def main(argv):
                 print("viewup=",cam1.GetViewUp(), "GetViewAngle=", cam1.GetViewAngle(), "GetPosition=", cam1.GetPosition())
                 if 'x' == plane.lower():
                         cam1.Azimuth(90)
+                        cam1.SetViewUp(0, 0, -1)
                 elif 'y' == plane.lower():
                         cam1.Elevation(90)
-                        cam1.SetViewUp(0, -1, 0)
+                        cam1.SetViewUp(0, 0, -1)
                 else:
                         print("default is z")
+                        cam1.SetViewUp(0, 1, 0)
                         pass
-
+                cam1.OrthogonalizeViewUp()
                 print("viewup=",cam1.GetViewUp(), "GetViewAngle=", cam1.GetViewAngle(), "GetPosition=", cam1.GetPosition())
                 #render.ResetCameraClippingRange()
 

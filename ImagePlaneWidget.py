@@ -46,7 +46,7 @@ sx, sy, sz = spacing
 
 origin = v16.GetOutput().GetOrigin()
 ox, oy, oz = origin
-
+print("spacing=", spacing, "\norigin=", origin, "\nscale=",xMin, xMax, yMin, yMax, zMin, zMax)
 # An outline is shown for context.
 outline = vtk.vtkOutlineFilter()
 outline.SetInputConnection(v16.GetOutputPort())
@@ -201,7 +201,9 @@ def AlignYaxis():
 def AlignZaxis():
     global yMin, yMax, current_widget, slice_number
     po = planeWidgetZ.GetPlaneOrientation()
+    print("align2z")
     if po == 3:
+        print("align2z, po==3")
         planeWidgetZ.SetPlaneOrientationToZAxes()
         slice_number = (zMax-zMin)/2
         planeWidgetZ.SetSliceIndex(slice_number)
@@ -327,7 +329,7 @@ planeWidgetZ.SetInteractor(iact)
 planeWidgetZ.On()
 
 for ipw in [planeWidgetX, planeWidgetY, planeWidgetZ]:
-    ipw.InteractionOff()  # --eton
+    #ipw.InteractionOff()  # --eton
     pass
 
 # Create an initial interesting view
