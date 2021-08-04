@@ -10,7 +10,9 @@ k_file_prefix="quarter"
 subViewA=None
 subViewC=None
 subViewT=None
-
+planeWidgetX = None
+planeWidgetY = None
+planeWidgetZ = None
 
 def get_cone_mapper():
         cone = vtk.vtkConeSource()
@@ -66,9 +68,20 @@ class vtkCallBack4IPW(object):
         global subViewA
         global subViewC
         global subViewT
-        subViewA[0].SetSlicePosition(slice_pos)
-        subViewC[0].SetSlicePosition(slice_pos)
-        subViewT[0].SetSlicePosition(slice_pos)
+        global planeWidgetX 
+        global planeWidgetY 
+        global planeWidgetZ
+        act_index=0
+        if id(planeWidgetX) == id(caller):
+                act_index=0
+        elif id(planeWidgetY) == id(caller):
+                act_index=1
+        elif id(planeWidgetZ) == id(caller):
+                act_index=2
+        if act_index in [0, 1, 2]:
+                subViewC[act_index].SetSlicePosition(slice_pos)
+                subViewA[act_index].SetSlicePosition(slice_pos)
+                subViewT[act_index].SetSlicePosition(slice_pos)
 
 def main(argv):
         colors = vtk.vtkNamedColors()
@@ -155,24 +168,28 @@ def main(argv):
                 prop1 = imgPlaneWidget.GetPlaneProperty()
                 prop1.SetColor(*prop_color)
                 return imgPlaneWidget
-
+        global planeWidgetX
         planeWidgetX = get_planeWidget_instance('x')
         planeWidgetX.SetSliceIndex(32)
         #add observer to IPW
         callback_x = vtkCallBack4IPW()
         planeWidgetX.AddObserver('AnyEvent', callback_x)
-        
+        global planeWidgetY
         planeWidgetY = get_planeWidget_instance('y')
         planeWidgetY.SetSliceIndex(32)
+        callback_y = vtkCallBack4IPW()
+        planeWidgetY.AddObserver('AnyEvent', callback_y)
 
         #planeWidgetY.SetLookupTable(planeWidgetX.GetLookupTable())
-
+        global planeWidgetZ
         # for the z-slice, turn off texture interpolation:
         # interpolation is now nearest neighbour, to demonstrate
         # cross-hair cursor snapping to pixel centers
         planeWidgetZ = get_planeWidget_instance('z')
         planeWidgetZ.SetSliceIndex(46)
         planeWidgetZ.SetLookupTable(planeWidgetX.GetLookupTable())
+        callback_z = vtkCallBack4IPW()
+        planeWidgetZ.AddObserver('AnyEvent', callback_z)
 
 
         def create_3_imgPlaneWidgets(option=0):
