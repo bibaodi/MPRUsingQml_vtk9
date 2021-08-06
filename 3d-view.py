@@ -78,7 +78,7 @@ class vtkCallBack4IPW(object):
                 act_index=1
         elif id(planeWidgetZ) == id(caller):
                 act_index=2
-        if act_index in [0, 1, 2]:
+        if act_index in [0, 1, 2] and None != subViewA:
                 subViewC[act_index].SetSlicePosition(slice_pos)
                 subViewA[act_index].SetSlicePosition(slice_pos)
                 subViewT[act_index].SetSlicePosition(slice_pos)
@@ -153,22 +153,27 @@ def main(argv):
                 imgPlaneWidget.SetSliceIndex(32)
                 imgPlaneWidget.SetPicker(picker)
                 #print("GetResliceInterpolate: default=", imgPlaneWidget.GetResliceInterpolate())
+                _reslice_obj = imgPlaneWidget.GetReslice()
+                print("reslice_obj:", _reslice_obj.GetSlabNumberOfSlices()) #default slab has one slice
                 prop_color=(1, 0, 0)
                 if 'x' == orientation.lower():
                         imgPlaneWidget.SetPlaneOrientationToXAxes()
                         imgPlaneWidget.SetKeyPressActivationValue("x")
                         imgPlaneWidget.SetResliceInterpolateToNearestNeighbour() # enumerate=0
+                        _reslice_obj.SetSlabNumberOfSlices(100)
                         print("GetResliceInterpolate: new=", imgPlaneWidget.GetResliceInterpolate())
                         prop_color=(1, 0, 0)
                 elif 'y' == orientation.lower():
                         imgPlaneWidget.SetPlaneOrientationToYAxes()
                         imgPlaneWidget.SetKeyPressActivationValue("y")
                         imgPlaneWidget.SetResliceInterpolateToLinear() # enumerate=1 it is default
+                        _reslice_obj.SetSlabNumberOfSlices(20)
                         prop_color=(1, 1, 0)
                 elif 'z' == orientation.lower():
                         imgPlaneWidget.SetPlaneOrientationToZAxes()
                         imgPlaneWidget.SetKeyPressActivationValue("z")
                         imgPlaneWidget.SetResliceInterpolateToCubic() # enumerate=2
+                        _reslice_obj.SetSlabNumberOfSlices(30)
                         prop_color=(0, 0, 1)
                 prop1 = imgPlaneWidget.GetPlaneProperty()
                 prop1.SetColor(*prop_color)
@@ -176,6 +181,14 @@ def main(argv):
         global planeWidgetX
         planeWidgetX = get_planeWidget_instance('x')
         planeWidgetX.SetSliceIndex(32)
+        reslice_obj=planeWidgetX.GetReslice() #<class 'vtkmodules.vtkImagingCore.vtkImageReslice'>
+        debug =0
+        if debug:
+                ss = dir(reslice_obj)
+                for s in ss:
+                        if "slab" in s.lower():
+                                print(s)
+        print(">>>"*30)
         #add observer to IPW
         callback_x = vtkCallBack4IPW()
         planeWidgetX.AddObserver('AnyEvent', callback_x)
