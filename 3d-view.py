@@ -152,18 +152,23 @@ def main(argv):
                 imgPlaneWidget.SetInputConnection(v16.GetOutputPort())
                 imgPlaneWidget.SetSliceIndex(32)
                 imgPlaneWidget.SetPicker(picker)
+                #print("GetResliceInterpolate: default=", imgPlaneWidget.GetResliceInterpolate())
                 prop_color=(1, 0, 0)
                 if 'x' == orientation.lower():
                         imgPlaneWidget.SetPlaneOrientationToXAxes()
                         imgPlaneWidget.SetKeyPressActivationValue("x")
+                        imgPlaneWidget.SetResliceInterpolateToNearestNeighbour() # enumerate=0
+                        print("GetResliceInterpolate: new=", imgPlaneWidget.GetResliceInterpolate())
                         prop_color=(1, 0, 0)
                 elif 'y' == orientation.lower():
                         imgPlaneWidget.SetPlaneOrientationToYAxes()
                         imgPlaneWidget.SetKeyPressActivationValue("y")
+                        imgPlaneWidget.SetResliceInterpolateToLinear() # enumerate=1 it is default
                         prop_color=(1, 1, 0)
                 elif 'z' == orientation.lower():
                         imgPlaneWidget.SetPlaneOrientationToZAxes()
                         imgPlaneWidget.SetKeyPressActivationValue("z")
+                        imgPlaneWidget.SetResliceInterpolateToCubic() # enumerate=2
                         prop_color=(0, 0, 1)
                 prop1 = imgPlaneWidget.GetPlaneProperty()
                 prop1.SetColor(*prop_color)
