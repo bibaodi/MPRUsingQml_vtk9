@@ -2,16 +2,16 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Window 2.15
-
+import QtQuick.Layouts 1.15
 // import the VTK module
 import VTK 9.0
 
 // window containing the application
-ApplicationWindow {
+Window {
   // title of the application
   title: qsTr("VTK QtQuick App")
-  width: 400
-  height: 400
+  width: 800
+  height: 800
   color: palette.window
 
   SystemPalette {
@@ -19,21 +19,95 @@ ApplicationWindow {
     colorGroup: SystemPalette.Active
   }
 
-  // menubar with two menus
-  menuBar: MenuBar {
-    Menu {
-      title: qsTr("File")
-      MenuItem {
-        text: qsTr("&Quit")
-        onTriggered: Qt.quit()
-      }
+  // Content area
+  RowLayout {
+      id:layout_row
+      anchors.fill: parent
+    spacing:0
+    ColumnLayout{
+        id:row_top
+        spacing: 0
+        Rectangle {
+            id: leftop
+            Layout.alignment: Qt.AlignCenter
+            color: "black"
+            Layout.preferredWidth: layout_row.width*0.5
+            Layout.preferredHeight: layout_row.height*0.5
+            border.color: "white"
+
+            Text {
+                id: label_A
+                color: "blue"
+                text: "A"
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 0
+                font.bold: true
+                font.pointSize: 20
+            }
+        }
+
+        Rectangle {
+            id:leftbottom
+            Layout.alignment: Qt.AlignBottom
+            Layout.fillHeight: true
+            color: "black"
+            Layout.preferredWidth: layout_row.width*0.5
+            Layout.preferredHeight: layout_row.height*0.5
+                        border.color: "white"
+            Text {
+                id: label_C
+                color: "red"
+                text: "C"
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.bottomMargin: 0
+                font.bold: true
+                font.pointSize: 20
+            }
+        }
     }
-    Menu {
-      title: qsTr("Edit")
+    ColumnLayout{
+        id:row_bottom
+        spacing: 0
+        Rectangle {
+            Layout.alignment: Qt.AlignCenter
+            color: "black"
+            Layout.preferredWidth: layout_row.width*0.5
+            Layout.preferredHeight: layout_row.height*0.5
+                        border.color: "white"
+            Text {
+                id: label_T
+                color: "green"
+                text: "T"
+                anchors.left: parent.left
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 0
+                font.bold: true
+                font.pointSize: 20
+            }
+        }
+
+        Rectangle {
+            Layout.alignment: Qt.AlignBottom
+            Layout.fillHeight: true
+            color: "black"
+            Layout.preferredWidth: layout_row.width*0.5
+            Layout.preferredHeight: layout_row.height*0.5
+                        border.color: "white"
+                        Text {
+                            id: label_3d
+                            color: "white"
+                            text: "3D"
+                            anchors.left: parent.left
+                            anchors.top: parent.top
+                            anchors.bottomMargin: 0
+                            font.bold: true
+                            font.pointSize: 20
+                        }
+        }
     }
   }
-
-  // Content area
 
   // a rectangle in the middle of the content area
   Rectangle {
