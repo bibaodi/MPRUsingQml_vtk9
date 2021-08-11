@@ -124,7 +124,7 @@ Window {
     }
 
     VTKRenderItem {
-      objectName: "MPRView_3d"
+      objectName: "MPRView_3D"
       renderWindow: vtkwindow
       focus: true
       Layout.row:  1
@@ -142,32 +142,6 @@ Window {
           font.bold: true
           font.pointSize: 20
       }
-    }
-
-
-
-
-  }
-
-
-  // a rectangle in the middle of the content area
-  Rectangle {
-    width: 300
-    height: 50
-    color: "blue"
-    border.color: "red"
-    border.width: 5
-    radius: 10
-    Text {
-        id: label
-        color: "white"
-        wrapMode: Text.WordWrap
-        text: "Custom QML rectangle & text"
-        anchors.right: parent.right
-        anchors.left: parent.left
-        anchors.top: parent.top
-        anchors.margins: 10
-        width: 100
     }
   }
 }
