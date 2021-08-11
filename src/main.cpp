@@ -46,7 +46,11 @@ int main(int argc, char *argv[]) {
     window->show(); // without this code, nothing will display --eton@210810
 
     // Fetch the QQuick window using the standard object name set up in the constructor
-    QQuickVTKRenderItem *qquickvtkItem = topLevel->findChild<QQuickVTKRenderItem *>("ConeView");
+    QQuickVTKRenderItem *qquickvtkItem = topLevel->findChild<QQuickVTKRenderItem *>("MPRView_A");
+    if (!qquickvtkItem) {
+        qDebug() << "vtk widget not found!";
+        return -1;
+    }
 
     // Create a cone pipeline and add it to the view
     vtkNew<vtkActor> actor;
@@ -60,5 +64,6 @@ int main(int argc, char *argv[]) {
     qquickvtkItem->renderer()->SetBackground2(0.7, 0.7, 0.7);
     qquickvtkItem->renderer()->SetGradientBackground(true);
     qquickvtkItem->update();
+
     return app.exec();
 }
