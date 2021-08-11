@@ -10,7 +10,17 @@
 #include "vtkTestUtilities.h"
 #include "vtkTesting.h"
 #include "vtkWindowToImageFilter.h"
-
+//-add-begin
+#include "QQuickVTKInteractiveWidget.h"
+#include "QVTKInteractor.h"
+#include "vtkCommand.h"
+#include "vtkImagePlaneWidget.h"
+#include "vtkImplicitPlaneRepresentation.h"
+#include "vtkImplicitPlaneWidget2.h"
+#include "vtkOutlineFilter.h"
+#include "vtkProperty.h"
+#include "vtkVolume16Reader.h"
+//-add-end
 #include <QApplication>
 #include <QDebug>
 #include <QQmlApplicationEngine>
@@ -18,7 +28,22 @@
 #include <QTimer>
 #include <QUrl>
 
-//#include <QQmlEngine>
+const QString k_data_dir = "/home/eton/opt/data/headsq/quarter";
+
+class TestQQuickVTKRenderItemWidgetCallback : public vtkCommand {
+  public:
+    static TestQQuickVTKRenderItemWidgetCallback *New() { return new TestQQuickVTKRenderItemWidgetCallback; }
+
+    void Execute(vtkObject *caller, unsigned long, void *) override {
+        vtkImagePlaneWidget *planeWidget = reinterpret_cast<vtkImagePlaneWidget *>(caller);
+        // zan shi bu hui yong
+        this->Actor->VisibilityOn();
+    }
+
+    TestQQuickVTKRenderItemWidgetCallback() : Plane(nullptr), Actor(nullptr) {}
+    vtkPlane *Plane;
+    vtkActor *Actor;
+};
 
 int main(int argc, char *argv[]) {
     QQuickVTKRenderWindow::setupGraphicsBackend();
@@ -51,19 +76,62 @@ int main(int argc, char *argv[]) {
         qDebug() << "vtk widget not found!";
         return -1;
     }
+    /*
+        // Create a cone pipeline and add it to the view
+        vtkNew<vtkActor> actor;
+        vtkNew<vtkPolyDataMapper> mapper;
+        vtkNew<vtkConeSource> cone;
+        mapper->SetInputConnection(cone->GetOutputPort());
+        actor->SetMapper(mapper);
+        // cone --end
+    */
+    // use Volume16Reader read data
+    vtkSmartPointer<vtkVolume16Reader> v16 = vtkSmartPointer<vtkVolume16Reader>::New();
+    v16->SetDataDimensions(64, 64);
+    v16->SetDataByteOrderToLittleEndian();
+    v16->SetFilePrefix(k_data_dir.toStdString().c_str());
+    v16->SetImageRange(1, 93);
+    v16->SetDataSpacing(3.2, 3.2, 1.5);
+    v16->Update();
+    int *extent = v16->GetOutput()->GetExtent();
+    qDebug() << "v16 info:" << extent[0] << extent[1] << extent[3] << extent[5];
 
-    // Create a cone pipeline and add it to the view
-    vtkNew<vtkActor> actor;
-    vtkNew<vtkPolyDataMapper> mapper;
-    vtkNew<vtkConeSource> cone;
-    mapper->SetInputConnection(cone->GetOutputPort());
-    actor->SetMapper(mapper);
-    qquickvtkItem->renderer()->AddActor(actor);
-    qquickvtkItem->renderer()->ResetCamera();
+    // create outline for 3d-view
+    vtkNew<vtkOutlineFilter> outline;
+    outline->SetInputConnection(v16->GetOutputPort());
+    vtkNew<vtkPolyDataMapper> outlineMapper;
+    outlineMapper->SetInputConnection(outline->GetOutputPort());
+    vtkNew<vtkActor> outlineActor;
+    outlineActor->SetMapper(outlineMapper);
+
+    vtkSmartPointer<QVTKInteractor> iact = vtkSmartPointer<QVTKInteractor>::New();
+    iact->SetRenderWindow(qquickvtkItem->renderWindow()->renderWindow());
+    vtkSmartPointer<vtkImagePlaneWidget> planeWidget[3];
+
+    int i = 0;
+    planeWidget[i] = vtkSmartPointer<vtkImagePlaneWidget>::New();
+    planeWidget[i]->SetInputConnection(v16->GetOutputPort());
+    planeWidget[i]->SetSliceIndex(32);
+    planeWidget[i]->SetCurrentRenderer(qquickvtkItem->renderer());
+    planeWidget[i]->SetInteractor(iact);
+    // planeWidget[i]->SetPicker(picker);
+    planeWidget[i]->RestrictPlaneToVolumeOn();
+    double color[3] = {0, 0, 0};
+    color[i] = 1;
+    vtkProperty *planeProperty = planeWidget[i]->GetPlaneProperty();
+    planeProperty->SetColor(color);
+
+    qquickvtkItem->renderer()->AddActor(outlineActor);
+    qquickvtkItem->renderer()->SetViewport(0.51, 0.0, 1.0, 0.49);
+    // qquickvtkItem->renderer()->AddActor(actor);
+    // qquickvtkItem->renderer()->ResetCamera();
     qquickvtkItem->renderer()->SetBackground(0.5, 0.5, 0.7);
     qquickvtkItem->renderer()->SetBackground2(0.7, 0.7, 0.7);
-    qquickvtkItem->renderer()->SetGradientBackground(true);
+    //  qquickvtkItem->renderer()->SetGradientBackground(true);
     qquickvtkItem->update();
+    planeWidget[i]->On();
+    iact->Initialize();
+    iact->Start();
 
     return app.exec();
 }

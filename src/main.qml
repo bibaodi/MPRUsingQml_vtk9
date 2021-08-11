@@ -31,8 +31,8 @@ Window {
     columns: 2
     rows: 2
     anchors.fill: parent
-    rowSpacing:2
-    columnSpacing: 2
+    rowSpacing:0
+    columnSpacing: 0
 
     VTKRenderItem {
       objectName: "MPRView_A"
@@ -82,6 +82,15 @@ Window {
           font.bold: true
           font.pointSize: 20
       }
+      Rectangle {
+            id:rect_c
+            border.color: label_C.color
+            color: "transparent"
+            x:  10
+            y: 10
+            width:parent.width -20
+            height:parent.height-20
+      }
     }
 
     VTKRenderItem {
@@ -102,6 +111,15 @@ Window {
           y: parent.height -height + 3.0
           font.bold: true
           font.pointSize: 20
+      }
+      Rectangle {
+            id:rect_t
+            border.color: label_T.color
+            color: "transparent"
+            x:  10
+            y: 10
+            width:parent.width -20
+            height:parent.height-20
       }
     }
 

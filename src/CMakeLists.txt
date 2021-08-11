@@ -33,6 +33,7 @@ find_package(VTK
     GUISupportQt
     GUISupportQtQuick
     IOImage
+    FiltersModeling
     ImagingColor
     ImagingGeneral
     InteractionImage
