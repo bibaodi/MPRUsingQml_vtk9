@@ -53,6 +53,15 @@ Window {
           font.bold: true
           font.pointSize: 20
       }
+      Rectangle {
+            id:rect_a
+            border.color: label_A.color
+            color: "transparent"
+            x:  10
+            y: 10
+            width:parent.width -20
+            height:parent.height-20
+      }
     }
     VTKRenderItem {
       objectName: "MPRView_C"
