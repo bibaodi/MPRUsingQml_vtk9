@@ -227,20 +227,13 @@ int main(int argc, char *argv[]) {
         create_ipw_instance(ipw_t[i], _o, v16, qvtkItem[2]->renderer(), iact);
     }
     // create callback for all three 3d-view's ipw
-    vtkNew<QVTKRenderItemWidgetCallback> ipw_cb_x;
-    vtkNew<QVTKRenderItemWidgetCallback> ipw_cb_y;
-    vtkNew<QVTKRenderItemWidgetCallback> ipw_cb_z;
+    vtkNew<QVTKRenderItemWidgetCallback> ipw_cb;
 
-    QVTKRenderItemWidgetCallback *ipw_cb_list[] = {ipw_cb_x, ipw_cb_y, ipw_cb_z};
     for (int i = 0; i < 3; i++) {
-        QVTKRenderItemWidgetCallback *ipw_cb = ipw_cb_list[i];
-        for (int i = 0; i < 3; i++) {
-            ipw_cb->ipw_a[i] = ipw_a[i].GetPointer();
-            ipw_cb->ipw_c[i] = ipw_c[i].GetPointer();
-            ipw_cb->ipw_t[i] = ipw_t[i].GetPointer();
-            ipw_cb->ipw_3d[i] = planeWidget[i].GetPointer();
-        }
-
+        ipw_cb->ipw_a[i] = ipw_a[i].GetPointer();
+        ipw_cb->ipw_c[i] = ipw_c[i].GetPointer();
+        ipw_cb->ipw_t[i] = ipw_t[i].GetPointer();
+        ipw_cb->ipw_3d[i] = planeWidget[i].GetPointer();
         planeWidget[i]->AddObserver(vtkCommand::AnyEvent, ipw_cb);
     }
 
