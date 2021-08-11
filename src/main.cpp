@@ -45,6 +45,39 @@ class TestQQuickVTKRenderItemWidgetCallback : public vtkCommand {
     vtkActor *Actor;
 };
 
+int create_ipw_instance(vtkSmartPointer<vtkImagePlaneWidget> &ipw, QString orientation,
+                        vtkSmartPointer<vtkVolume16Reader> &v16, vtkRenderer *ren,
+                        vtkSmartPointer<QVTKInteractor> &iact) {
+    ipw = vtkSmartPointer<vtkImagePlaneWidget>::New();
+    ipw->SetInputConnection(v16->GetOutputPort());
+    ipw->SetCurrentRenderer(ren);
+    ipw->SetInteractor(iact);
+    // ipw->SetPicker(picker);
+    ipw->RestrictPlaneToVolumeOn();
+
+    double color[3] = {0, 0, 0};
+    qDebug() << "create_ipw_instance: orientation=" << orientation;
+    if (QString("x") == orientation.toLower()) {
+        qDebug() << "create_ipw_instance: branch=x";
+        ipw->SetPlaneOrientationToXAxes();
+        ipw->SetSliceIndex(32);
+        color[2] = 1;
+    } else if (QString('y') == orientation.toLower()) {
+        qDebug() << "create_ipw_instance: branch=y";
+        ipw->SetPlaneOrientationToYAxes();
+        ipw->SetSliceIndex(33);
+        color[0] = 1;
+    } else {
+        qDebug() << "create_ipw_instance: branch= others";
+        ipw->SetPlaneOrientationToZAxes();
+        ipw->SetSliceIndex(35);
+        color[1] = 1;
+    }
+
+    ipw->GetPlaneProperty()->SetColor(color);
+    return 0;
+}
+
 int main(int argc, char *argv[]) {
     QQuickVTKRenderWindow::setupGraphicsBackend();
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
@@ -109,17 +142,10 @@ int main(int argc, char *argv[]) {
     vtkSmartPointer<vtkImagePlaneWidget> planeWidget[3];
 
     int i = 0;
-    planeWidget[i] = vtkSmartPointer<vtkImagePlaneWidget>::New();
-    planeWidget[i]->SetInputConnection(v16->GetOutputPort());
-    planeWidget[i]->SetSliceIndex(32);
-    planeWidget[i]->SetCurrentRenderer(qquickvtkItem->renderer());
-    planeWidget[i]->SetInteractor(iact);
-    // planeWidget[i]->SetPicker(picker);
-    planeWidget[i]->RestrictPlaneToVolumeOn();
-    double color[3] = {0, 0, 0};
-    color[i] = 1;
-    vtkProperty *planeProperty = planeWidget[i]->GetPlaneProperty();
-    planeProperty->SetColor(color);
+
+    create_ipw_instance(planeWidget[0], QString("x"), v16, qquickvtkItem->renderer(), iact);
+    create_ipw_instance(planeWidget[1], QString("y"), v16, qquickvtkItem->renderer(), iact);
+    create_ipw_instance(planeWidget[2], QString("z"), v16, qquickvtkItem->renderer(), iact);
 
     qquickvtkItem->renderer()->AddActor(outlineActor);
     qquickvtkItem->renderer()->SetViewport(0.51, 0.0, 1.0, 0.49);
@@ -129,7 +155,9 @@ int main(int argc, char *argv[]) {
     qquickvtkItem->renderer()->SetBackground2(0.7, 0.7, 0.7);
     //  qquickvtkItem->renderer()->SetGradientBackground(true);
     qquickvtkItem->update();
-    planeWidget[i]->On();
+    for (i = 0; i < 3; i++) {
+        planeWidget[i]->On();
+    }
     iact->Initialize();
     iact->Start();
 
