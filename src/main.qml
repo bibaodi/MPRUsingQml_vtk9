@@ -39,9 +39,8 @@ Window {
                 id: label_A
                 color: "blue"
                 text: "A"
-                anchors.right: parent.right
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: 0
+                x: parent.width - width -1.0
+                y: parent.height -height + 3.0
                 font.bold: true
                 font.pointSize: 20
             }
@@ -59,9 +58,8 @@ Window {
                 id: label_C
                 color: "red"
                 text: "C"
-                anchors.right: parent.right
-                anchors.top: parent.top
-                anchors.bottomMargin: 0
+                x: parent.width - width - 3.0
+                y: -8.0
                 font.bold: true
                 font.pointSize: 20
             }
@@ -80,9 +78,8 @@ Window {
                 id: label_T
                 color: "green"
                 text: "T"
-                anchors.left: parent.left
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: 0
+                x:  3.0
+                y: parent.height -height + 3.0
                 font.bold: true
                 font.pointSize: 20
             }
@@ -99,9 +96,8 @@ Window {
                             id: label_3d
                             color: "white"
                             text: "3D"
-                            anchors.left: parent.left
-                            anchors.top: parent.top
-                            anchors.bottomMargin: 0
+                            x: 3.0
+                            y: -8.0
                             font.bold: true
                             font.pointSize: 20
                         }
