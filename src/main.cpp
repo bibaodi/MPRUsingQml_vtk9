@@ -21,6 +21,7 @@
 #include "vtkOutlineFilter.h"
 #include "vtkProperty.h"
 #include "vtkVolume16Reader.h"
+#include <list>
 //-add-end
 #include <QApplication>
 #include <QDebug>
@@ -31,19 +32,44 @@
 
 const QString k_data_dir = "/home/eton/opt/data/headsq/quarter";
 
-class TestQQuickVTKRenderItemWidgetCallback : public vtkCommand {
+class QVTKRenderItemWidgetCallback : public vtkCommand {
   public:
-    static TestQQuickVTKRenderItemWidgetCallback *New() { return new TestQQuickVTKRenderItemWidgetCallback; }
+    static QVTKRenderItemWidgetCallback *New() { return new QVTKRenderItemWidgetCallback; }
 
     void Execute(vtkObject *caller, unsigned long, void *) override {
         vtkImagePlaneWidget *planeWidget = reinterpret_cast<vtkImagePlaneWidget *>(caller);
-        // zan shi bu hui yong
-        this->Actor->VisibilityOn();
+        int slice_idx = planeWidget->GetSliceIndex();
+        int act_idx = -1;
+        qDebug() << "callback: slice index=" << slice_idx << ", act_index" << act_idx;
+        if (ipw_3d[0] == planeWidget) {
+            act_idx = 0;
+        } else if (ipw_3d[1] == planeWidget) {
+            act_idx = 1;
+        } else if (ipw_3d[2] == planeWidget) {
+            act_idx = 2;
+        }
+        qDebug() << "callback: slice index=" << slice_idx << ", act_index" << act_idx;
+        if (act_idx > -1) {
+            ipw_a[act_idx]->SetSliceIndex(slice_idx);
+            ipw_c[act_idx]->SetSliceIndex(slice_idx);
+            ipw_t[act_idx]->SetSliceIndex(slice_idx);
+        }
     }
 
-    TestQQuickVTKRenderItemWidgetCallback() : Plane(nullptr), Actor(nullptr) {}
-    vtkPlane *Plane;
-    vtkActor *Actor;
+    QVTKRenderItemWidgetCallback() {
+        for (int i = 0; i < 3; i++) {
+            qDebug() << "init callback:i=" << i;
+            ipw_3d[i] = nullptr;
+            ipw_a[i] = nullptr;
+            ipw_c[i] = nullptr;
+            ipw_t[i] = nullptr;
+        }
+    }
+
+    vtkImagePlaneWidget *ipw_3d[3];
+    vtkImagePlaneWidget *ipw_a[3];
+    vtkImagePlaneWidget *ipw_c[3];
+    vtkImagePlaneWidget *ipw_t[3];
 };
 
 int create_ipw_instance(vtkSmartPointer<vtkImagePlaneWidget> &ipw, QString orientation,
@@ -181,7 +207,7 @@ int main(int argc, char *argv[]) {
     vtkSmartPointer<vtkImagePlaneWidget> ipw_t[3];
 
     int i = 0;
-
+    // create ipw
     for (i = 0; i < 3; i++) {
         planeWidget[i] = vtkSmartPointer<vtkImagePlaneWidget>::New();
         ipw_a[i] = vtkSmartPointer<vtkImagePlaneWidget>::New();
@@ -199,6 +225,23 @@ int main(int argc, char *argv[]) {
         create_ipw_instance(ipw_a[i], _o, v16, qvtkItem[0]->renderer(), iact);
         create_ipw_instance(ipw_c[i], _o, v16, qvtkItem[1]->renderer(), iact);
         create_ipw_instance(ipw_t[i], _o, v16, qvtkItem[2]->renderer(), iact);
+    }
+    // create callback for all three 3d-view's ipw
+    vtkNew<QVTKRenderItemWidgetCallback> ipw_cb_x;
+    vtkNew<QVTKRenderItemWidgetCallback> ipw_cb_y;
+    vtkNew<QVTKRenderItemWidgetCallback> ipw_cb_z;
+
+    QVTKRenderItemWidgetCallback *ipw_cb_list[] = {ipw_cb_x, ipw_cb_y, ipw_cb_z};
+    for (int i = 0; i < 3; i++) {
+        QVTKRenderItemWidgetCallback *ipw_cb = ipw_cb_list[i];
+        for (int i = 0; i < 3; i++) {
+            ipw_cb->ipw_a[i] = ipw_a[i].GetPointer();
+            ipw_cb->ipw_c[i] = ipw_c[i].GetPointer();
+            ipw_cb->ipw_t[i] = ipw_t[i].GetPointer();
+            ipw_cb->ipw_3d[i] = planeWidget[i].GetPointer();
+        }
+
+        planeWidget[i]->AddObserver(vtkCommand::AnyEvent, ipw_cb);
     }
 
     ren->AddActor(outlineActor);
