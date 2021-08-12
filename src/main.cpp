@@ -257,8 +257,6 @@ int main(int argc, char *argv[]) {
     reset_act_plane_view_cam(qvtkItem[0]->renderer(), 0);
     reset_act_plane_view_cam(qvtkItem[1]->renderer(), 1);
     reset_act_plane_view_cam(qvtkItem[2]->renderer(), 2);
-    iact->Initialize();
-    iact->Start();
 
     return app.exec();
 }
