@@ -12,6 +12,7 @@
 #include "vtkWindowToImageFilter.h"
 //-add-begin
 #include "QQuickVTKInteractiveWidget.h"
+#include "QQuickVTKInteractorAdapter.h"
 #include "QVTKInteractor.h"
 #include "vtkCamera.h"
 #include "vtkCommand.h"
@@ -21,7 +22,6 @@
 #include "vtkOutlineFilter.h"
 #include "vtkProperty.h"
 #include "vtkVolume16Reader.h"
-#include <list>
 //-add-end
 #include <QApplication>
 #include <QDebug>
@@ -40,7 +40,7 @@ class QVTKRenderItemWidgetCallback : public vtkCommand {
         vtkImagePlaneWidget *planeWidget = reinterpret_cast<vtkImagePlaneWidget *>(caller);
         int slice_idx = planeWidget->GetSliceIndex();
         int act_idx = -1;
-        qDebug() << "callback: slice index=" << slice_idx << ", act_index" << act_idx;
+        qDebug() << "callback: slice index=" << slice_idx;
         if (ipw_3d[0] == planeWidget) {
             act_idx = 0;
         } else if (ipw_3d[1] == planeWidget) {
@@ -48,7 +48,8 @@ class QVTKRenderItemWidgetCallback : public vtkCommand {
         } else if (ipw_3d[2] == planeWidget) {
             act_idx = 2;
         }
-        qDebug() << "callback: slice index=" << slice_idx << ", act_index" << act_idx;
+        qDebug() << "callback: "
+                 << " act_index" << act_idx;
         if (act_idx > -1) {
             ipw_a[act_idx]->SetSliceIndex(slice_idx);
             ipw_c[act_idx]->SetSliceIndex(slice_idx);
@@ -66,16 +67,14 @@ class QVTKRenderItemWidgetCallback : public vtkCommand {
         }
     }
 
-    vtkImagePlaneWidget *ipw_3d[3];
-    vtkImagePlaneWidget *ipw_a[3];
-    vtkImagePlaneWidget *ipw_c[3];
-    vtkImagePlaneWidget *ipw_t[3];
+    vtkSmartPointer<vtkImagePlaneWidget> ipw_3d[3];
+    vtkSmartPointer<vtkImagePlaneWidget> ipw_a[3];
+    vtkSmartPointer<vtkImagePlaneWidget> ipw_c[3];
+    vtkSmartPointer<vtkImagePlaneWidget> ipw_t[3];
 };
 
 int create_ipw_instance(vtkSmartPointer<vtkImagePlaneWidget> &ipw, QString orientation,
-                        vtkSmartPointer<vtkVolume16Reader> &v16, vtkRenderer *ren,
-                        vtkSmartPointer<QVTKInteractor> &iact) {
-    // ipw = vtkSmartPointer<vtkImagePlaneWidget>::New();
+                        vtkSmartPointer<vtkVolume16Reader> &v16, vtkRenderer *ren, QVTKInteractor *iact) {
     ipw->SetInputConnection(v16->GetOutputPort());
     ipw->SetCurrentRenderer(ren);
     ipw->SetInteractor(iact);
@@ -131,14 +130,14 @@ int reset_act_plane_view_cam(vtkRenderer *ren, int direction) {
         qDebug() << "default is Z direction";
         cam->SetViewUp(0, 1, 0);
     }
-    cam->OrthogonalizeViewUp();
+    // cam->OrthogonalizeViewUp();
     return 0;
 }
 
 int main(int argc, char *argv[]) {
     QQuickVTKRenderWindow::setupGraphicsBackend();
 
-    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    // QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
     QGuiApplication app(argc, argv);
 
@@ -198,9 +197,13 @@ int main(int argc, char *argv[]) {
     outlineActor->SetMapper(outlineMapper);
 
     // 3d-view
-    vtkRenderer *ren = qvtkItem[3]->renderer();
-    vtkSmartPointer<QVTKInteractor> iact = vtkSmartPointer<QVTKInteractor>::New();
-    iact->SetRenderWindow(qvtkItem[3]->renderWindow()->renderWindow());
+    // vtkRenderer *ren = qvtkItem[3]->renderer();
+    // vtkNew<QVTKInteractor> iact;
+
+    vtkSmartPointer<vtkRenderWindow> renw = qvtkItem[0]->renderWindow()->renderWindow();
+    vtkSmartPointer<vtkGenericOpenGLRenderWindow> renwin =
+        static_cast<vtkGenericOpenGLRenderWindow *>(renw.GetPointer());
+    QVTKInteractor *iact = dynamic_cast<QVTKInteractor *>(renwin->GetInteractor());
     vtkSmartPointer<vtkImagePlaneWidget> planeWidget[3];
     vtkSmartPointer<vtkImagePlaneWidget> ipw_a[3];
     vtkSmartPointer<vtkImagePlaneWidget> ipw_c[3];
@@ -221,10 +224,10 @@ int main(int argc, char *argv[]) {
         else if (2 == i)
             _o = QString("z");
 
-        create_ipw_instance(planeWidget[i], _o, v16, ren, iact);
         create_ipw_instance(ipw_a[i], _o, v16, qvtkItem[0]->renderer(), iact);
         create_ipw_instance(ipw_c[i], _o, v16, qvtkItem[1]->renderer(), iact);
         create_ipw_instance(ipw_t[i], _o, v16, qvtkItem[2]->renderer(), iact);
+        create_ipw_instance(planeWidget[i], _o, v16, qvtkItem[3]->renderer(), iact);
     }
     // create callback for all three 3d-view's ipw
     vtkNew<QVTKRenderItemWidgetCallback> ipw_cb;
@@ -237,20 +240,20 @@ int main(int argc, char *argv[]) {
         planeWidget[i]->AddObserver(vtkCommand::AnyEvent, ipw_cb);
     }
 
-    ren->AddActor(outlineActor);
+    qvtkItem[3]->renderer()->AddActor(outlineActor);
     // ren->SetViewport(0.51, 0.0, 1.0, 0.49);
     // ren->SetBackground(0.5, 0.5, 0.7);
     // ren->SetBackground2(0.7, 0.7, 0.7);
 
     // ren->SetGradientBackground(true);
-    // qvtkItem[3]->update();
+    qvtkItem[3]->update();
     for (i = 0; i < 3; i++) {
         ipw_a[i]->On();
         ipw_c[i]->On();
         ipw_t[i]->On();
         planeWidget[i]->On();
     }
-    reset_3d_view_cam(ren);
+    reset_3d_view_cam(qvtkItem[3]->renderer());
     reset_act_plane_view_cam(qvtkItem[0]->renderer(), 0);
     reset_act_plane_view_cam(qvtkItem[1]->renderer(), 1);
     reset_act_plane_view_cam(qvtkItem[2]->renderer(), 2);
