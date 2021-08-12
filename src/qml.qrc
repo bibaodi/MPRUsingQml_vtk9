@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>ScaleBar3D.qml</file>
+    </qresource>
+</RCC>
