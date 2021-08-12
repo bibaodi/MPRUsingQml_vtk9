@@ -5,11 +5,13 @@ import QtQuick.Window 2.15
 import QtQuick.Layouts 1.15
 // import the VTK module
 import VTK 9.0
+import QtQuick.Shapes 1.15
 
 // window containing the application
 Window {
   // title of the application
   title: qsTr("VTK QtQuick App")
+  id: root_3d_win
   width: 800
   height: 800
   color: palette.window
@@ -62,6 +64,12 @@ Window {
             width:parent.width -20
             height:parent.height-20
       }
+      ScaleBar3D {
+        x: rect_a.x + rect_a.width
+        y: rect_a.y
+        width: 20
+        height: rect_a.height
+      }
     }
     VTKRenderItem {
       objectName: "MPRView_C"
@@ -90,6 +98,12 @@ Window {
             y: 10
             width:parent.width -20
             height:parent.height-20
+      }
+      ScaleBar3D {
+        x: rect_c.x + rect_c.width
+        y: rect_c.y
+        width: 20
+        height: rect_c.height
       }
     }
 
@@ -121,6 +135,12 @@ Window {
             width:parent.width -20
             height:parent.height-20
       }
+      ScaleBar3D {
+        x: rect_t.x + rect_t.width
+        y: rect_t.y
+        width: 20
+        height: rect_t.height
+      }
     }
 
     VTKRenderItem {
@@ -143,5 +163,17 @@ Window {
           font.pointSize: 20
       }
     }
+  }
+  Shape{
+      ShapePath {
+          fillColor: "transparent"
+          strokeColor: "white"
+          strokeWidth: 1
+          strokeStyle: ShapePath.SolidLine
+          startX: 0; startY: root_3d_win.height *0.5
+          PathLine { x: root_3d_win.width; y: root_3d_win.height *0.5 }
+          PathMove {x: root_3d_win.width*0.5; y: 0}
+          PathLine { x: root_3d_win.width*0.5; y: root_3d_win.height }
+      }
   }
 }
