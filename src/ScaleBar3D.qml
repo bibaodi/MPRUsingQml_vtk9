@@ -1,3 +1,4 @@
+// Component for MPR view--the scale bar
 import QtQuick 2.4
 import QtQuick.Shapes 1.15
 

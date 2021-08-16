@@ -53,6 +53,7 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Quick LinguistTools REQUIRED)
 
 set(PROJECT_SOURCES
         main.cpp
+        #main_mpr.cpp
         qml.qrc
 )
 
