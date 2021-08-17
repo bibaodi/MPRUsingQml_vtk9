@@ -31,8 +31,8 @@ Window {
   // Content area
   GridLayout {
     id: grid_layout
-    columns: 4
-    rows: 4
+    columns: 3
+    rows: 3
     anchors.fill: parent
     rowSpacing:0
     columnSpacing: 0
@@ -65,15 +65,6 @@ Window {
       Layout.minimumWidth: 100
       Layout.preferredWidth: 200
     }
-    MultiSliceRenderItem {
-      Layout.row:  0
-      Layout.column: 3
-      objectName: "MultiSlice"+Layout.row+Layout.column
-      Layout.fillWidth: true
-      Layout.fillHeight: true
-      Layout.minimumWidth: 100
-      Layout.preferredWidth: 200
-    }
 
     MultiSliceRenderItem {
       Layout.row:  1
@@ -103,15 +94,6 @@ Window {
       Layout.preferredWidth: 200
     }
     MultiSliceRenderItem {
-      Layout.row:  1
-      Layout.column: 3
-      objectName: "MultiSlice"+Layout.row+Layout.column
-      Layout.fillWidth: true
-      Layout.fillHeight: true
-      Layout.minimumWidth: 100
-      Layout.preferredWidth: 200
-    }
-    MultiSliceRenderItem {
       Layout.row:  2
       Layout.column: 0
       objectName: "MultiSlice"+Layout.row+Layout.column
@@ -138,52 +120,7 @@ Window {
       Layout.minimumWidth: 100
       Layout.preferredWidth: 200
     }
-    MultiSliceRenderItem {
-      Layout.row:  2
-      Layout.column: 3
-      objectName: "MultiSlice"+Layout.row+Layout.column
-      Layout.fillWidth: true
-      Layout.fillHeight: true
-      Layout.minimumWidth: 100
-      Layout.preferredWidth: 200
-    }
-    //row4
-    MultiSliceRenderItem {
-      Layout.row:  3
-      Layout.column: 0
-      objectName: "MultiSlice"+Layout.row+Layout.column
-      Layout.fillWidth: true
-      Layout.fillHeight: true
-      Layout.minimumWidth: 100
-      Layout.preferredWidth: 200
-    }
-    MultiSliceRenderItem {
-      Layout.row:  3
-      Layout.column: 1
-      objectName: "MultiSlice"+Layout.row+Layout.column
-      Layout.fillWidth: true
-      Layout.fillHeight: true
-      Layout.minimumWidth: 100
-      Layout.preferredWidth: 200
-    }
-    MultiSliceRenderItem {
-      Layout.row:  3
-      Layout.column: 2
-      objectName: "MultiSlice"+Layout.row+Layout.column
-      Layout.fillWidth: true
-      Layout.fillHeight: true
-      Layout.minimumWidth: 100
-      Layout.preferredWidth: 200
-    }
-    MultiSliceRenderItem {
-      Layout.row:  3
-      Layout.column: 3
-      objectName: "MultiSlice"+Layout.row+Layout.column
-      Layout.fillWidth: true
-      Layout.fillHeight: true
-      Layout.minimumWidth: 100
-      Layout.preferredWidth: 200
-    }
+
   }
   Shape{
       objectName: "MultiSliceOutliner3x3"
@@ -193,23 +130,17 @@ Window {
           strokeWidth: 1
           strokeStyle: ShapePath.SolidLine
           //horizon line 1
-          startX: 0; startY: root_3d_win.height / 4.0
-          PathLine { x: root_3d_win.width; y: root_3d_win.height /4.0 }
+          startX: 0; startY: root_3d_win.height / 3.0
+          PathLine { x: root_3d_win.width; y: root_3d_win.height /3.0 }
           //horizon line 2
-          PathMove { x: 0; y: 2.0*root_3d_win.height / 4.0}
-          PathLine { x: root_3d_win.width; y: 2.0*root_3d_win.height /4.0 }
-          //horizon line 3
-          PathMove { x: 0; y: 3.0*root_3d_win.height / 4.0}
-          PathLine { x: root_3d_win.width; y: 3.0*root_3d_win.height /4.0 }
+          PathMove { x: 0; y: 2.0*root_3d_win.height / 3.0}
+          PathLine { x: root_3d_win.width; y: 2.0*root_3d_win.height /3.0 }
           //vertical line 1
-          PathMove { x: root_3d_win.width* 1.0 / 4.0 ; y: 0}
-          PathLine { x: root_3d_win.width* 1.0 / 4.0 ; y: root_3d_win.height }
+          PathMove { x: root_3d_win.width* 1.0 / 3.0 ; y: 0}
+          PathLine { x: root_3d_win.width* 1.0 / 3.0 ; y: root_3d_win.height }
           //vertical line 2
-          PathMove { x: root_3d_win.width* 2.0 / 4.0 ; y: 0}
-          PathLine { x: root_3d_win.width* 2.0 / 4.0 ; y: root_3d_win.height }
-          //vertical line 3
-          PathMove { x: root_3d_win.width* 3.0 / 4.0 ; y: 0}
-          PathLine { x: root_3d_win.width* 3.0 / 4.0 ; y: root_3d_win.height }
+          PathMove { x: root_3d_win.width* 2.0 / 3.0 ; y: 0}
+          PathLine { x: root_3d_win.width* 2.0 / 3.0 ; y: root_3d_win.height }
       }
   }
 }

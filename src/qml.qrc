@@ -4,5 +4,6 @@
         <file>ScaleBar3D.qml</file>
         <file>MPR_3d_view.qml</file>
         <file>MultiSliceRenderItem.qml</file>
+        <file>MultiSlice3x3.qml</file>
     </qresource>
 </RCC>
