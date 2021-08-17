@@ -101,16 +101,6 @@ class vtkCallBack4IPW(object):
             points.SetPoint(0, (point_pos_x, point_pos_y, 0.0))
             #points.InsertNextPoint((point_pos_x, slice_idx, 0.0))
             print("points=", points.GetPoint(0), "mtime=", points.GetMTime())
-            #global pointPD
-            #pointPD.SetPoints(points)
-            #pointPD.Update()
-            #print("pointPD=", pointPD)
-            #global pointActor
-            #pointActor.Update()
-            #global renWin
-            #renWin.Render()
-            #global pointMapper
-            #pointMapper.Update()
 
         elif id(planeWidgetY) == id(caller):
             act_index = 1
@@ -125,11 +115,11 @@ class vtkCallBack4IPW(object):
             subViewA[act_index].SetSlicePosition(slice_pos)
             subViewT[act_index].SetSlicePosition(slice_pos)
             points.SetPoint(0, (point_pos_x, point_pos_y, 0.0))
-            points.Modified()
+            points.Modified()  # !!!this is important when modified the data
             global lineSource
-            lineSource.SetPoint1([point_pos_x, 0.0, 31.2])
-            lineSource.SetPoint2([point_pos_x, 201.6, 31.2])
-            lineSource.Modified()
+            lineSource.SetPoint1([point_pos_x, 0.0, point_pos_z])
+            lineSource.SetPoint2([point_pos_x, 201.6, point_pos_z])
+            lineSource.Modified()  #!!!this is important when modified the data
 
 
 def get_point_obj():
