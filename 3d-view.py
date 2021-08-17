@@ -22,6 +22,7 @@ pointActor = None
 ren = None
 renWin = None
 pointMapper = None
+lineSource = None
 
 
 def get_cone_mapper():
@@ -125,6 +126,10 @@ class vtkCallBack4IPW(object):
             subViewT[act_index].SetSlicePosition(slice_pos)
             points.SetPoint(0, (point_pos_x, point_pos_y, 0.0))
             points.Modified()
+            global lineSource
+            lineSource.SetPoint1([point_pos_x, 0.0, 31.2])
+            lineSource.SetPoint2([point_pos_x, 201.6, 31.2])
+            lineSource.Modified()
 
 
 def get_point_obj():
@@ -164,8 +169,19 @@ def get_point_obj():
     pointActor = vtk.vtkActor()
     pointActor.SetMapper(pointMapper)
     pointActor.GetProperty().SetColor(colors.GetColor3d('red'))
-    pointActor.GetProperty().SetPointSize(5)
+    pointActor.GetProperty().SetPointSize(9)
     return pointActor
+
+
+def get_line(linesource):
+    colors = vtk.vtkNamedColors()
+    lm = vtk.vtkPolyDataMapper()
+    lm.SetInputConnection(linesource.GetOutputPort())
+    actor = vtk.vtkActor()
+    actor.SetMapper(lm)
+    actor.GetProperty().SetLineWidth(5)
+    actor.GetProperty().SetColor(colors.GetColor3d("red"))
+    return actor
 
 
 def main(argv):
@@ -333,6 +349,9 @@ def main(argv):
     global pointActor
     #if None == type(pointActor):
     pointActor = get_point_obj()
+    global lineSource
+    lineSource = vtk.vtkLineSource()
+    ren.AddActor(get_line(lineSource))
     ren.AddActor(pointActor)
     ren.AddActor(outlineActor)
     ren.SetBackground(colors.GetColor3d('violet_dark'))
