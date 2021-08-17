@@ -2,5 +2,7 @@
     <qresource prefix="/">
         <file>main.qml</file>
         <file>ScaleBar3D.qml</file>
+        <file>MPR_3d_view.qml</file>
+        <file>MultiSliceRenderItem.qml</file>
     </qresource>
 </RCC>
