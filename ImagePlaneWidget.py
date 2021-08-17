@@ -167,11 +167,13 @@ def CaptureImage():
 # call AlignCamera to set the camera facing the widget
 def AlignXaxis():
     global xMax, xMin, current_widget, slice_number
-    po = planeWidgetX.GetPlaneOrientation()
+    po = planeWidgetX.GetPlaneOrientation() # int po=0
+    print("ipw:orientation: type=", type(po), "conent=", po)
     if po == 3:
         planeWidgetX.SetPlaneOrientationToXAxes()
         slice_number = (xMax-xMin)/2
-        planeWidgetX.SetSliceIndex(slice_number)
+        print("po=3? slice-number=", slice_number)
+        planeWidgetX.SetSliceIndex(int(slice_number))
     else:
         slice_number = planeWidgetX.GetSliceIndex()
 
