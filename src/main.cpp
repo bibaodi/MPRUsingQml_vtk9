@@ -172,7 +172,7 @@ int main(int argc, char *argv[]) {
     QQmlApplicationEngine engine;
     qDebug() << "QML2_IMPORT_PATH:" << engine.importPathList();
     engine.addImportPath("/usr/local/lib/qml");
-    const QUrl url(QStringLiteral("qrc:/main.qml"));
+    const QUrl url(QStringLiteral("qrc:/MultiSlice3x3.qml"));
     QObject::connect(
         &engine, &QQmlApplicationEngine::objectCreated, &app,
         [url](QObject *obj, const QUrl &objUrl) {
@@ -187,8 +187,8 @@ int main(int argc, char *argv[]) {
     window->show(); // without this code, nothing will display --eton@210810
 
     // Fetch the QQuick window using the standard object name set up in the constructor
-    const int row_cnt = 4;
-    const int col_cnt = 4;
+    const int row_cnt = 3;
+    const int col_cnt = 3;
     float slice_pos[row_cnt * col_cnt - 1] = {0.0};
     QQuickVTKRenderItem *qvtkItem[row_cnt * col_cnt] = {nullptr};
     QString renderNames = "MultiSlice";
