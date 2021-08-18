@@ -97,8 +97,8 @@ class vtkCallBack4IPW(object):
             act_index = 0
             point_pos_x = slice_pos
             print("point_pos_xyz=", point_pos_x, point_pos_y, point_pos_z)
-
             points.SetPoint(0, (point_pos_x, point_pos_y, 0.0))
+            #points.SetPoint(0, (caller.GetPoint2()))
             #points.InsertNextPoint((point_pos_x, slice_idx, 0.0))
             print("points=", points.GetPoint(0), "mtime=", points.GetMTime())
 
@@ -114,12 +114,14 @@ class vtkCallBack4IPW(object):
             subViewC[act_index].SetSlicePosition(slice_pos)
             subViewA[act_index].SetSlicePosition(slice_pos)
             subViewT[act_index].SetSlicePosition(slice_pos)
-            points.SetPoint(0, (point_pos_x, point_pos_y, 0.0))
+            #points.SetPoint(0, (point_pos_x, point_pos_y, 0.0))
+            points.SetPoint(0, (caller.GetPoint1()))
             points.Modified()  # !!!this is important when modified the data
             global lineSource
             lineSource.SetPoint1([point_pos_x, 0.0, point_pos_z])
             lineSource.SetPoint2([point_pos_x, 201.6, point_pos_z])
             lineSource.Modified()  #!!!this is important when modified the data
+            print("ipw getpoint:1-2", caller.GetNormal(), caller.GetCenter())
 
 
 def get_point_obj():
@@ -170,7 +172,7 @@ def get_line(linesource):
     actor = vtk.vtkActor()
     actor.SetMapper(lm)
     actor.GetProperty().SetLineWidth(5)
-    actor.GetProperty().SetColor(colors.GetColor3d("red"))
+    actor.GetProperty().SetColor(colors.GetColor3d("green"))
     return actor
 
 
@@ -263,7 +265,7 @@ def main(argv):
             imgPlaneWidget.SetKeyPressActivationValue("x")
             imgPlaneWidget.SetResliceInterpolateToNearestNeighbour(
             )  # enumerate=0
-            _reslice_obj.SetSlabNumberOfSlices(100)
+            #_reslice_obj.SetSlabNumberOfSlices(100)
             print("GetResliceInterpolate: new=",
                   imgPlaneWidget.GetResliceInterpolate())
             prop_color = (1, 0, 0)
@@ -272,13 +274,13 @@ def main(argv):
             imgPlaneWidget.SetKeyPressActivationValue("y")
             imgPlaneWidget.SetResliceInterpolateToLinear(
             )  # enumerate=1 it is default
-            _reslice_obj.SetSlabNumberOfSlices(20)
+            # _reslice_obj.SetSlabNumberOfSlices(20)
             prop_color = (1, 1, 0)
         elif 'z' == orientation.lower():
             imgPlaneWidget.SetPlaneOrientationToZAxes()
             imgPlaneWidget.SetKeyPressActivationValue("z")
             imgPlaneWidget.SetResliceInterpolateToCubic()  # enumerate=2
-            _reslice_obj.SetSlabNumberOfSlices(30)
+            #_reslice_obj.SetSlabNumberOfSlices(30)
             prop_color = (0, 0, 1)
         prop1 = imgPlaneWidget.GetPlaneProperty()
         prop1.SetColor(*prop_color)
