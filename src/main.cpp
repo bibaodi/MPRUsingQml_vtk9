@@ -34,6 +34,7 @@
 #include <QUrl>
 
 const QString k_data_dir = "/home/eton/opt/data/headsq/quarter";
+enum ViewType { A, C, T, D3 };
 
 class QVTKRenderItemWidgetCallback : public vtkCommand {
   public:
@@ -76,7 +77,7 @@ class QVTKRenderItemWidgetCallback : public vtkCommand {
     vtkSmartPointer<vtkImagePlaneWidget> ipw_t[3];
 };
 
-int create_ipw_instance(vtkSmartPointer<vtkImagePlaneWidget> &ipw, QString orientation,
+int create_ipw_instance(vtkSmartPointer<vtkImagePlaneWidget> &ipw, int orientation,
                         vtkSmartPointer<vtkVolume16Reader> &v16, vtkRenderer *ren, QVTKInteractor *iact,
                         int slice_idx) {
     ipw->SetInputConnection(v16->GetOutputPort());
@@ -89,21 +90,24 @@ int create_ipw_instance(vtkSmartPointer<vtkImagePlaneWidget> &ipw, QString orien
 
     double color[3] = {0, 0, 0};
     qDebug() << "create_ipw_instance: orientation=" << orientation;
-    if (QString("x") == orientation.toLower()) {
+    if (ViewType::T == orientation) {
         qDebug() << "create_ipw_instance: branch=x";
         ipw->SetPlaneOrientationToXAxes();
         ipw->SetSliceIndex(slice_idx);
-        color[2] = 1;
-    } else if (QString('y') == orientation.toLower()) {
+        color[1] = 1;
+    } else if (ViewType::C == orientation) {
         qDebug() << "create_ipw_instance: branch=y";
         ipw->SetPlaneOrientationToYAxes();
         ipw->SetSliceIndex(slice_idx);
         color[0] = 1;
-    } else {
+    } else if (ViewType::A == orientation) {
         qDebug() << "create_ipw_instance: branch= others";
         ipw->SetPlaneOrientationToZAxes();
         ipw->SetSliceIndex(slice_idx);
-        color[1] = 1;
+        color[2] = 1;
+    } else {
+        qDebug() << "error: no right orientation";
+        return -1;
     }
 
     ipw->GetPlaneProperty()->SetColor(color);
@@ -116,40 +120,40 @@ int create_ipw_instance(vtkSmartPointer<vtkImagePlaneWidget> &ipw, QString orien
 int reset_img_plane_view_cam(vtkRenderer *ren, int direction) {
     ren->ResetCamera();
     vtkCamera *cam = ren->GetActiveCamera();
-    if (0 == direction) {
-        cam->Azimuth(90);
-        cam->SetViewUp(0, 0, -1);
-    } else if (1 == direction) {
+    if (ViewType::A == direction) {
+        cam->SetViewUp(0, -1, 0);
+    } else if (ViewType::C == direction) {
         cam->Elevation(90);
         cam->SetViewUp(0, 0, -1);
-    } else if (2 == direction) {
+    } else if (ViewType::T == direction) {
         qDebug() << "default is Z direction";
+        cam->Azimuth(-90);
         cam->SetViewUp(0, 1, 0);
     }
-    // cam->OrthogonalizeViewUp();
+    cam->OrthogonalizeViewUp();
     return 0;
 }
 
-int create_slice_pos_line(float slice_pos, vtkSmartPointer<vtkImagePlaneWidget> &ipw0, QString orientation,
+int create_slice_pos_line(float slice_pos, vtkSmartPointer<vtkImagePlaneWidget> &ipw0, int orientation,
                           vtkRenderer *ren) {
 
-    double ipw0_pos = ipw0->GetSlicePosition(); // when ipw0 == A then this is a x;
+    double ipw0_pos = ipw0->GetSlicePosition(); // when ipw0 == A then this is a z;
 
     // Create two points, P0 and P1
-    double p0[3] = {ipw0_pos, slice_pos, 0.0}; // when slice ==C then pos is a y; z from 0 to max
-    double p1[3] = {ipw0_pos, slice_pos, 138.0};
+    double p0[3] = {0.0, slice_pos, ipw0_pos}; // when slice ==C then pos is a y; z from 0 to max
+    double p1[3] = {201.6, slice_pos, ipw0_pos};
     vtkNew<vtkLineSource> lineSource;
     lineSource->SetPoint1(p0);
     lineSource->SetPoint2(p1);
 
     // Visualize
     double color[3] = {0, 0, 0};
-    if (QString("x") == orientation.toLower()) {
-        color[2] = 1;
-    } else if (QString('y') == orientation.toLower()) {
-        color[0] = 1;
-    } else {
+    if (ViewType::T == orientation) {
         color[1] = 1;
+    } else if (ViewType::C == orientation) {
+        color[0] = 1;
+    } else if (ViewType::A == orientation) {
+        color[2] = 1;
     }
 
     vtkNew<vtkPolyDataMapper> mapper;
@@ -192,7 +196,6 @@ int main(int argc, char *argv[]) {
     float slice_pos[row_cnt * col_cnt - 1] = {0.0};
     QQuickVTKRenderItem *qvtkItem[row_cnt * col_cnt] = {nullptr};
     QString renderNames = "MultiSlice";
-    enum ViewType { A, C, T, D3 };
     const int current_view = 1; // 0=a,1=c,2=t,3=3d;
     int current_view_ortho = current_view;
     int slice_idx_base = 0;
@@ -216,15 +219,6 @@ int main(int argc, char *argv[]) {
             }
         }
     }
-    /*
-        // Create a cone pipeline and add it to the view
-        vtkNew<vtkActor> actor;
-        vtkNew<vtkPolyDataMapper> mapper;
-        vtkNew<vtkConeSource> cone;
-        mapper->SetInputConnection(cone->GetOutputPort());
-        actor->SetMapper(mapper);
-        // cone --end
-    */
     // use Volume16Reader read data
     vtkSmartPointer<vtkVolume16Reader> v16 = vtkSmartPointer<vtkVolume16Reader>::New();
     v16->SetDataDimensions(64, 64);
@@ -259,32 +253,39 @@ int main(int argc, char *argv[]) {
     for (i = 0; i < row_cnt * col_cnt; i++) {
         qDebug() << "i=" << i;
         ipw[i] = vtkSmartPointer<vtkImagePlaneWidget>::New();
-        QString _o;
+
         int _view = current_view;
         if (0 == i) {
             _view = current_view_ortho;
         }
-        switch (_view) {
-        case ViewType::A:
-            _o = QString("x");
-            break;
-        case ViewType::C:
-            _o = QString("y");
-            break;
-        case ViewType::T:
-            _o = QString("z");
-            break;
-        default:
-            qDebug() << "current_view_ortho not in range:" << _view;
-        }
 
-        qDebug() << "current_view_ortho=" << _view << ", orentation=" << _o;
-        create_ipw_instance(ipw[i], _o, v16, qvtkItem[i]->renderer(), iact, slice_idx_base + i * 3 - 1);
-        if (i > 0)
-            create_ipw_instance(ipw[i], _o, v16, qvtkItem[i]->renderer(), iact, slice_idx_base + i * 3 - 1);
         if (i > 0) {
+            create_ipw_instance(ipw[i], _view, v16, qvtkItem[i]->renderer(), iact, slice_idx_base + i * 3 - 1);
             slice_pos[i - 1] = ipw[i]->GetSlicePosition();
-            create_slice_pos_line(slice_pos[i - 1], ipw[0], _o, qvtkItem[0]->renderer());
+            create_slice_pos_line(slice_pos[i - 1], ipw[0], _view, qvtkItem[0]->renderer());
+        } else {
+            // view-0 first view which is orthonocal to current-view
+            qDebug() << "current_view_ortho=" << _view;
+            create_ipw_instance(ipw[i], _view, v16, qvtkItem[i]->renderer(), iact, slice_idx_base + i * 3 - 1);
+#if 0
+            double viewup[3] = {0.0};
+            double normal[3] = {0.0};
+            ipw[i]->GetNormal(normal);
+            if (normal[2] > 0.9) {
+                // PlaneA n=(0,0,1), viewup=(0,1,0)
+                viewup[1] = 1.0;
+            } else if (normal[1] > 0.9) {
+                // PlaneC n=(0,1,0), viewup=(0,0,-1)
+                viewup[2] = -1.0;
+            } else {
+                // PlaneT n=(-1,0,0), viewup=(0,1,0)
+                viewup[1] = 1.0;
+            }
+            qvtkItem[i]->renderer()->ResetCamera();
+            qvtkItem[i]->renderer()->GetActiveCamera()->SetViewUp(viewup);
+            qvtkItem[i]->renderer()->GetActiveCamera()->GetViewUp(viewup);
+            qDebug() << "viewup=" << viewup[0] << viewup[1] << viewup[2];
+#endif
         }
     }
 
