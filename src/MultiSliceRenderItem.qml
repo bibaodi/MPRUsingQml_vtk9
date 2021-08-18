@@ -11,7 +11,7 @@ VTKRenderItem {
   focus: true
   Rectangle {
         id:rect_0
-        border.color: outline_color
+        border.color: "transparent"
         color: "transparent"
         x:  10
         y: 10
