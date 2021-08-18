@@ -23,6 +23,8 @@
 #include "vtkOutlineFilter.h"
 #include "vtkProperty.h"
 #include "vtkVolume16Reader.h"
+#include <vtkLineSource.h>
+#include <vtkNamedColors.h>
 //-add-end
 #include <QApplication>
 #include <QDebug>
@@ -111,7 +113,7 @@ int create_ipw_instance(vtkSmartPointer<vtkImagePlaneWidget> &ipw, QString orien
 /*
  * direction = (0, 1, 2) x=0, y=2, z=2
  */
-int reset_act_plane_view_cam(vtkRenderer *ren, int direction) {
+int reset_img_plane_view_cam(vtkRenderer *ren, int direction) {
     ren->ResetCamera();
     vtkCamera *cam = ren->GetActiveCamera();
     if (0 == direction) {
@@ -125,6 +127,38 @@ int reset_act_plane_view_cam(vtkRenderer *ren, int direction) {
         cam->SetViewUp(0, 1, 0);
     }
     // cam->OrthogonalizeViewUp();
+    return 0;
+}
+
+int create_slice_pos_line(float slice_pos, vtkSmartPointer<vtkImagePlaneWidget> &ipw0, QString orientation,
+                          vtkRenderer *ren) {
+
+    double ipw0_pos = ipw0->GetSlicePosition(); // when ipw0 == A then this is a x;
+
+    // Create two points, P0 and P1
+    double p0[3] = {ipw0_pos, slice_pos, 0.0}; // when slice ==C then pos is a y; z from 0 to max
+    double p1[3] = {ipw0_pos, slice_pos, 138.0};
+    vtkNew<vtkLineSource> lineSource;
+    lineSource->SetPoint1(p0);
+    lineSource->SetPoint2(p1);
+
+    // Visualize
+    double color[3] = {0, 0, 0};
+    if (QString("x") == orientation.toLower()) {
+        color[2] = 1;
+    } else if (QString('y') == orientation.toLower()) {
+        color[0] = 1;
+    } else {
+        color[1] = 1;
+    }
+
+    vtkNew<vtkPolyDataMapper> mapper;
+    mapper->SetInputConnection(lineSource->GetOutputPort());
+    vtkNew<vtkActor> actor;
+    actor->SetMapper(mapper);
+    actor->GetProperty()->SetLineWidth(1);
+    actor->GetProperty()->SetColor(color);
+    ren->AddActor(actor);
     return 0;
 }
 
@@ -153,14 +187,15 @@ int main(int argc, char *argv[]) {
     window->show(); // without this code, nothing will display --eton@210810
 
     // Fetch the QQuick window using the standard object name set up in the constructor
-    QQuickVTKRenderItem *qvtkItem[9] = {nullptr};
+    const int row_cnt = 4;
+    const int col_cnt = 4;
+    float slice_pos[row_cnt * col_cnt - 1] = {0.0};
+    QQuickVTKRenderItem *qvtkItem[row_cnt * col_cnt] = {nullptr};
     QString renderNames = "MultiSlice";
-    const int row_cnt = 3;
-    const int col_cnt = 3;
     enum ViewType { A, C, T, D3 };
     const int current_view = 1; // 0=a,1=c,2=t,3=3d;
     int current_view_ortho = current_view;
-    int slice_idx_base = 50;
+    int slice_idx_base = 0;
 
     // make the first view orthogonal to current view
     if (ViewType::A == current_view) {
@@ -222,6 +257,7 @@ int main(int argc, char *argv[]) {
     int i = 0;
     // create ipw
     for (i = 0; i < row_cnt * col_cnt; i++) {
+        qDebug() << "i=" << i;
         ipw[i] = vtkSmartPointer<vtkImagePlaneWidget>::New();
         QString _o;
         int _view = current_view;
@@ -243,18 +279,22 @@ int main(int argc, char *argv[]) {
         }
 
         qDebug() << "current_view_ortho=" << _view << ", orentation=" << _o;
-        create_ipw_instance(ipw[i], _o, v16, qvtkItem[i]->renderer(), iact, slice_idx_base + i - 1);
+        create_ipw_instance(ipw[i], _o, v16, qvtkItem[i]->renderer(), iact, slice_idx_base + i * 3 - 1);
         if (i > 0)
-            create_ipw_instance(ipw[i], _o, v16, qvtkItem[i]->renderer(), iact, slice_idx_base + i - 1);
+            create_ipw_instance(ipw[i], _o, v16, qvtkItem[i]->renderer(), iact, slice_idx_base + i * 3 - 1);
+        if (i > 0) {
+            slice_pos[i - 1] = ipw[i]->GetSlicePosition();
+            create_slice_pos_line(slice_pos[i - 1], ipw[0], _o, qvtkItem[0]->renderer());
+        }
     }
 
     // qvtkItem[3]->update();
     for (i = 0; i < row_cnt * col_cnt; i++) {
         ipw[i]->On();
     }
-    reset_act_plane_view_cam(qvtkItem[0]->renderer(), current_view_ortho);
+    reset_img_plane_view_cam(qvtkItem[0]->renderer(), current_view_ortho);
     for (i = 1; i < row_cnt * col_cnt; i++) {
-        reset_act_plane_view_cam(qvtkItem[i]->renderer(), current_view);
+        reset_img_plane_view_cam(qvtkItem[i]->renderer(), current_view);
     }
 
     return app.exec();
