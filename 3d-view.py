@@ -13,9 +13,9 @@ point_pos_z = 0.0
 subViewA = None
 subViewC = None
 subViewT = None
-planeWidgetX = None
-planeWidgetY = None
-planeWidgetZ = None
+planeWidgetA = None
+planeWidgetC = None
+planeWidgetT = None
 pointPD = None
 points = None
 pointActor = None
@@ -84,16 +84,16 @@ class vtkCallBack4IPW(object):
         global subViewA
         global subViewC
         global subViewT
-        global planeWidgetX
-        global planeWidgetY
-        global planeWidgetZ
+        global planeWidgetA
+        global planeWidgetC
+        global planeWidgetT
 
         global point_pos_x
         global point_pos_y
         global point_pos_z
         global points
         act_index = 0
-        if id(planeWidgetX) == id(caller):
+        if id(planeWidgetA) == id(caller):
             act_index = 0
             point_pos_x = slice_pos
             print("point_pos_xyz=", point_pos_x, point_pos_y, point_pos_z)
@@ -102,11 +102,11 @@ class vtkCallBack4IPW(object):
             #points.InsertNextPoint((point_pos_x, slice_idx, 0.0))
             print("points=", points.GetPoint(0), "mtime=", points.GetMTime())
 
-        elif id(planeWidgetY) == id(caller):
+        elif id(planeWidgetC) == id(caller):
             act_index = 1
             point_pos_y = slice_pos
             points.SetPoint(0, (point_pos_x, point_pos_y, 0.0))
-        elif id(planeWidgetZ) == id(caller):
+        elif id(planeWidgetT) == id(caller):
             point_pos_z = slice_pos
             act_index = 2
             points.SetPoint(0, (point_pos_x, point_pos_y, point_pos_z))
@@ -122,6 +122,39 @@ class vtkCallBack4IPW(object):
             lineSource.SetPoint2([point_pos_x, 201.6, point_pos_z])
             lineSource.Modified()  #!!!this is important when modified the data
             print("ipw getpoint:1-2", caller.GetNormal(), caller.GetCenter())
+
+
+def get_fixed_point_obj(x=0.0, y=0.0, z=0.0, c='red'):
+    colors = vtk.vtkNamedColors()
+    # Create the geometry of a point (the coordinate)
+    points = vtk.vtkPoints()
+    p = [x, y, z]
+
+    # We need an an array of point id's for InsertNextCell.
+    pid = [None]
+    if points.GetNumberOfPoints() < 1:
+        pid[0] = points.InsertNextPoint(p)
+    else:
+        points.SetPoint(pid[0], p)
+    # Create the topology of the point (a vertex)
+    vertices = vtk.vtkCellArray()
+    vertices.InsertNextCell(1, pid)
+
+    # Create a polydata object
+    pointPD = vtk.vtkPolyData()
+    # Set the points and vertices we created as the geometry and topology of the polydata
+    pointPD.SetPoints(points)
+    pointPD.SetVerts(vertices)
+
+    # Visualize
+    pointMapper = vtk.vtkPolyDataMapper()
+    pointMapper.SetInputData(pointPD)
+
+    pointActor = vtk.vtkActor()
+    pointActor.SetMapper(pointMapper)
+    pointActor.GetProperty().SetColor(colors.GetColor3d(c))
+    pointActor.GetProperty().SetPointSize(9)
+    return pointActor
 
 
 def get_point_obj():
@@ -242,7 +275,7 @@ def main(argv):
     picker.SetTolerance(0.005)
 
     # The 3 image plane widgets are used to probe the dataset.
-    def get_planeWidget_instance(orientation='x'):
+    def get_planeWidget_instance(orientation='a'):
         imgPlaneWidget = vtk.vtkImagePlaneWidget()
         imgPlaneWidget.DisplayTextOn()
         imgPlaneWidget.SetInputConnection(v16.GetOutputPort())
@@ -260,25 +293,25 @@ def main(argv):
             "reslice_obj:",
             _reslice_obj.GetSlabNumberOfSlices())  #default slab has one slice
         prop_color = (1, 0, 0)
-        if 'x' == orientation.lower():
+        if 't' == orientation.lower():
             imgPlaneWidget.SetPlaneOrientationToXAxes()
-            imgPlaneWidget.SetKeyPressActivationValue("x")
+            imgPlaneWidget.SetKeyPressActivationValue("t")
             imgPlaneWidget.SetResliceInterpolateToNearestNeighbour(
             )  # enumerate=0
             #_reslice_obj.SetSlabNumberOfSlices(100)
             print("GetResliceInterpolate: new=",
                   imgPlaneWidget.GetResliceInterpolate())
-            prop_color = (1, 0, 0)
-        elif 'y' == orientation.lower():
+            prop_color = (0, 1, 0)
+        elif 'c' == orientation.lower():
             imgPlaneWidget.SetPlaneOrientationToYAxes()
-            imgPlaneWidget.SetKeyPressActivationValue("y")
+            imgPlaneWidget.SetKeyPressActivationValue("c")
             imgPlaneWidget.SetResliceInterpolateToLinear(
             )  # enumerate=1 it is default
             # _reslice_obj.SetSlabNumberOfSlices(20)
-            prop_color = (1, 1, 0)
-        elif 'z' == orientation.lower():
+            prop_color = (1, 0, 0)
+        elif 'a' == orientation.lower():
             imgPlaneWidget.SetPlaneOrientationToZAxes()
-            imgPlaneWidget.SetKeyPressActivationValue("z")
+            imgPlaneWidget.SetKeyPressActivationValue("a")
             imgPlaneWidget.SetResliceInterpolateToCubic()  # enumerate=2
             #_reslice_obj.SetSlabNumberOfSlices(30)
             prop_color = (0, 0, 1)
@@ -286,10 +319,10 @@ def main(argv):
         prop1.SetColor(*prop_color)
         return imgPlaneWidget
 
-    global planeWidgetX
-    planeWidgetX = get_planeWidget_instance('x')
-    planeWidgetX.SetSliceIndex(32)
-    reslice_obj = planeWidgetX.GetReslice(
+    global planeWidgetA
+    planeWidgetA = get_planeWidget_instance('a')
+    planeWidgetA.SetSliceIndex(32)
+    reslice_obj = planeWidgetA.GetReslice(
     )  #<class 'vtkmodules.vtkImagingCore.vtkImageReslice'>
     debug = 0
     if debug:
@@ -300,30 +333,30 @@ def main(argv):
     print(">>>" * 30)
     #add observer to IPW
     callback_x = vtkCallBack4IPW()
-    planeWidgetX.AddObserver('AnyEvent', callback_x)
-    global planeWidgetY
-    planeWidgetY = get_planeWidget_instance('y')
-    planeWidgetY.SetSliceIndex(32)
+    planeWidgetA.AddObserver('AnyEvent', callback_x)
+    global planeWidgetC
+    planeWidgetC = get_planeWidget_instance('c')
+    planeWidgetC.SetSliceIndex(32)
     callback_y = vtkCallBack4IPW()
-    planeWidgetY.AddObserver('AnyEvent', callback_y)
+    planeWidgetC.AddObserver('AnyEvent', callback_y)
 
-    #planeWidgetY.SetLookupTable(planeWidgetX.GetLookupTable())
-    global planeWidgetZ
+    #planeWidgetC.SetLookupTable(planeWidgetA.GetLookupTable())
+    global planeWidgetT
     # for the z-slice, turn off texture interpolation:
     # interpolation is now nearest neighbour, to demonstrate
     # cross-hair cursor snapping to pixel centers
-    planeWidgetZ = get_planeWidget_instance('z')
-    planeWidgetZ.SetSliceIndex(46)
-    planeWidgetZ.SetLookupTable(planeWidgetX.GetLookupTable())
+    planeWidgetT = get_planeWidget_instance('t')
+    planeWidgetT.SetSliceIndex(46)
+    planeWidgetT.SetLookupTable(planeWidgetA.GetLookupTable())
     callback_z = vtkCallBack4IPW()
-    planeWidgetZ.AddObserver('AnyEvent', callback_z)
+    planeWidgetT.AddObserver('AnyEvent', callback_z)
 
     def create_3_imgPlaneWidgets(option=0):
-        _planeWidgetX = get_planeWidget_instance('x')
+        _planeWidgetX = get_planeWidget_instance('a')
         _planeWidgetX.SetSliceIndex(32)
-        _planeWidgetY = get_planeWidget_instance('y')
+        _planeWidgetY = get_planeWidget_instance('c')
         _planeWidgetY.SetSliceIndex(32)
-        _planeWidgetZ = get_planeWidget_instance('z')
+        _planeWidgetZ = get_planeWidget_instance('t')
         _planeWidgetZ.SetSliceIndex(46)
         return [_planeWidgetX, _planeWidgetY, _planeWidgetZ]
 
@@ -341,10 +374,15 @@ def main(argv):
     global pointActor
     #if None == type(pointActor):
     pointActor = get_point_obj()
+
+    pointActo = get_fixed_point_obj(0.0, 0.0, 0.0, 'white')
+    pointActe = get_fixed_point_obj(201.6, 201.6, 138.0, 'yellow')
     global lineSource
     lineSource = vtk.vtkLineSource()
     ren.AddActor(get_line(lineSource))
     ren.AddActor(pointActor)
+    ren.AddActor(pointActo)
+    ren.AddActor(pointActe)
     ren.AddActor(outlineActor)
     ren.SetBackground(colors.GetColor3d('violet_dark'))
     ren.SetViewport(
@@ -356,17 +394,17 @@ def main(argv):
     ren2.AddActor(pointActor)
     ren3.AddActor(pointActor)
     ren4.AddActor(pointActor)
-    ren2.SetBackground(colors.GetColor3d('Tomato'))
+    ren2.SetBackground(colors.GetColor3d('black'))
     ren2.SetViewport(0.0, 0.51, 0.49, 1.0)
 
     # config 3rd render right-top
     #ren3.AddActor(planeActor)
-    ren3.SetBackground(colors.GetColor3d('green_yellow'))
+    ren3.SetBackground(colors.GetColor3d('black'))
     ren3.SetViewport(0.51, 0.51, 1.0, 1.0)
 
     # config 4th render left-bottom
     #ren4.AddActor2D(actor4)
-    ren4.SetBackground(colors.GetColor3d('DodgerBlue'))
+    ren4.SetBackground(colors.GetColor3d('black'))
     ren4.SetViewport(0.0, 0.0, 0.49, 0.49)
 
     renWin.AddRenderer(ren2)
@@ -465,7 +503,7 @@ def main(argv):
     global subViewA
     global subViewC
     global subViewT
-    enable_3d_view_imgPlaneWidges([planeWidgetX, planeWidgetY, planeWidgetZ],
+    enable_3d_view_imgPlaneWidges([planeWidgetA, planeWidgetC, planeWidgetT],
                                   ren, iact, True)
     subViewA = create_3_imgPlaneWidgets()
     enable_3d_view_imgPlaneWidges(subViewA, ren2, iact)
@@ -478,35 +516,37 @@ def main(argv):
         # Create an initial interesting view
         render.ResetCamera()
         cam1 = render.GetActiveCamera()
-        cam1.Elevation(110)
-        cam1.SetViewUp(0, 0, -1)
-        cam1.Azimuth(45)
+        print(f"camera viewup={cam1.GetViewUp()}")
+        cam1.Elevation(30)
+        #cam1.SetViewUp(0, 0, 1)
+        cam1.Azimuth(-45)
         render.ResetCameraClippingRange()
 
-    def create_plane_initial_view(render, plane='x'):
+    def create_plane_initial_view(render, plane='a'):
         render.ResetCamera()
         cam1 = render.GetActiveCamera()
-        print("viewup=", cam1.GetViewUp(), "GetViewAngle=",
-              cam1.GetViewAngle(), "GetPosition=", cam1.GetPosition())
-        if 'x' == plane.lower():
-            cam1.Azimuth(90)
-            cam1.SetViewUp(0, 0, -1)
-        elif 'y' == plane.lower():
+        print(f"plane={plane},viewup=", cam1.GetViewUp(), "GetPosition=",
+              cam1.GetPosition())
+        if 'a' == plane.lower():
+            #cam1.Azimuth(90)
+            cam1.SetViewUp(0, 1, 0)
+        elif 'c' == plane.lower():
             cam1.Elevation(90)
-            cam1.SetViewUp(0, 0, -1)
+            cam1.SetViewUp(1, 0, 0)
         else:
             print("default is z")
             cam1.SetViewUp(0, 1, 0)
+            cam1.Azimuth(90)
             pass
         cam1.OrthogonalizeViewUp()
-        print("viewup=", cam1.GetViewUp(), "GetViewAngle=",
-              cam1.GetViewAngle(), "GetPosition=", cam1.GetPosition())
-        #render.ResetCameraClippingRange()
+        print(f"plane={plane},viewup=", cam1.GetViewUp(), "GetPosition=",
+              cam1.GetPosition())
+        #render.ResetCameraClippingRange()  "GetViewAngle=", cam1.GetViewAngle(),
 
     create_3d_initial_view(ren)
-    create_plane_initial_view(ren2, 'x')
-    create_plane_initial_view(ren3, 'y')
-    create_plane_initial_view(ren4, 'z')
+    #create_plane_initial_view(ren2, 'a')
+    create_plane_initial_view(ren3, 'c')
+    create_plane_initial_view(ren4, 't')
     if 1:  #add label text
         label_a = add_text_label2(ren2, 'A')
         label_c = add_text_label2(ren3, 'C')
