@@ -137,24 +137,32 @@ int MultiSliceView::create_slice_pos_line(float slice_pos, vtkSmartPointer<vtkIm
     if (!ren) {
         return -3;
     }
+    if (orientation < ViewType::A || orientation >= ViewType::D3) {
+        return -4;
+    }
+    // TODO: data's coordination bounding need to be variant
     double ipw0_pos = ipw0->GetSlicePosition(); // when ipw0 == A then this is a z;
-
-    // Create two points, P0 and P1
-    double p0[3] = {0.0, slice_pos, ipw0_pos}; // when slice ==C then pos is a y; z from 0 to max
-    double p1[3] = {201.6, slice_pos, ipw0_pos};
-    vtkNew<vtkLineSource> lineSource;
-    lineSource->SetPoint1(p0);
-    lineSource->SetPoint2(p1);
-
+    double p0[3] = {0.0, 0.0, 0.0};
+    double p1[3] = {201.6, 201.6, 138.0};
     // Visualize
     double color[3] = {0, 0, 0};
     if (ViewType::T == orientation) {
         color[1] = 1;
+        p1[0] = p0[0] = slice_pos;
+        p1[1] = p0[1] = ipw0_pos;
     } else if (ViewType::C == orientation) {
         color[0] = 1;
+        p1[1] = p0[1] = slice_pos;
+        p1[2] = p0[2] = ipw0_pos;
     } else if (ViewType::A == orientation) {
         color[2] = 1;
+        p1[2] = p0[2] = slice_pos;
+        p1[0] = p0[0] = ipw0_pos;
     }
+    // Create two points, P0 and P1
+    vtkNew<vtkLineSource> lineSource;
+    lineSource->SetPoint1(p0);
+    lineSource->SetPoint2(p1);
 
     vtkNew<vtkPolyDataMapper> mapper;
     mapper->SetInputConnection(lineSource->GetOutputPort());

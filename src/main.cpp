@@ -200,8 +200,11 @@ int main(int argc, char *argv[]) {
     v16->Update();
     int extent[6] = {0};
     v16->GetOutput()->GetExtent(extent);
-    qDebug() << "v16 info:" << extent[0] << extent[1] << extent[3] << extent[5];
-    MultiSliceView msc(v16, nullptr, topLevel, 3, 1); //>>>>
+    qDebug() << "v16 info extent:" << extent[0] << extent[1] << extent[3] << extent[5];
+    double spacing[3];
+    v16->GetOutput()->GetSpacing(spacing);
+    qDebug() << "v16 info spacing:" << spacing[0] << spacing[1] << spacing[2];
+    MultiSliceView msc(v16, nullptr, topLevel, 3, ViewType::C); //>>>>
     qDebug() << "msc instance create finish~";
 
     msc.show();

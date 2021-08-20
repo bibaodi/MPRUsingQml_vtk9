@@ -32,7 +32,7 @@
 #define ThreeDMultiSliceLayout3 3
 #define ThreeDMultiSliceLayout4 (ThreeDMultiSliceLayout3 + 1)
 
-enum ViewType { A, C, T, D3 };
+enum ViewType { A = 0, C, T, D3 };
 
 class MultiSliceView : public QObject {
     Q_OBJECT
