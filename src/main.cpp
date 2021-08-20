@@ -32,9 +32,11 @@
 #include <QQuickWindow>
 #include <QTimer>
 #include <QUrl>
+//---
+#include "multisliceview.h"
 
 const QString k_data_dir = "/home/eton/opt/data/headsq/quarter";
-enum ViewType { A, C, T, D3 };
+// enum ViewType { A, C, T, D3 };
 
 class QVTKRenderItemWidgetCallback : public vtkCommand {
   public:
@@ -187,38 +189,7 @@ int main(int argc, char *argv[]) {
     engine.load(url);
     // get root window
     QObject *topLevel = engine.rootObjects().value(0);
-    QQuickWindow *window = qobject_cast<QQuickWindow *>(topLevel);
-    window->show(); // without this code, nothing will display --eton@210810
 
-    // Fetch the QQuick window using the standard object name set up in the constructor
-    const int row_cnt = 3;
-    const int col_cnt = 3;
-    float slice_pos[row_cnt * col_cnt - 1] = {0.0};
-    QQuickVTKRenderItem *qvtkItem[row_cnt * col_cnt] = {nullptr};
-    QString renderNames = "MultiSlice";
-    const int current_view = 1; // 0=a,1=c,2=t,3=3d;
-    int current_view_ortho = current_view;
-    int slice_idx_base = 0;
-
-    // make the first view orthogonal to current view
-    if (ViewType::A == current_view) {
-        current_view_ortho = ViewType::T;
-    } else if (ViewType::C == current_view) {
-        current_view_ortho = ViewType::A;
-    } else if (ViewType::T == current_view) {
-        current_view_ortho = ViewType::C;
-    }
-
-    for (int _r = 0; _r < row_cnt; _r++) {
-        for (int _c = 0; _c < col_cnt; _c++) {
-            qvtkItem[_r * row_cnt + _c] =
-                topLevel->findChild<QQuickVTKRenderItem *>(QString("%1%2%3").arg(renderNames).arg(_r).arg(_c));
-            if (!qvtkItem[_r * row_cnt + _c]) {
-                qDebug() << "vtk widget not found! >>" << renderNames[_r * row_cnt];
-                return -1;
-            }
-        }
-    }
     // use Volume16Reader read data
     vtkSmartPointer<vtkVolume16Reader> v16 = vtkSmartPointer<vtkVolume16Reader>::New();
     v16->SetDataDimensions(64, 64);
@@ -227,76 +198,12 @@ int main(int argc, char *argv[]) {
     v16->SetImageRange(1, 93);
     v16->SetDataSpacing(3.2, 3.2, 1.5);
     v16->Update();
-    int *extent = v16->GetOutput()->GetExtent();
+    int extent[6] = {0};
+    v16->GetOutput()->GetExtent(extent);
     qDebug() << "v16 info:" << extent[0] << extent[1] << extent[3] << extent[5];
+    MultiSliceView msc(v16, nullptr, topLevel, 3, 1); //>>>>
+    qDebug() << "msc instance create finish~";
 
-    // create outline for 3d-view
-    vtkNew<vtkOutlineFilter> outline;
-    outline->SetInputConnection(v16->GetOutputPort());
-    vtkNew<vtkPolyDataMapper> outlineMapper;
-    outlineMapper->SetInputConnection(outline->GetOutputPort());
-    vtkNew<vtkActor> outlineActor;
-    outlineActor->SetMapper(outlineMapper);
-
-    // 3d-view
-    // vtkRenderer *ren = qvtkItem[3]->renderer();
-    // vtkNew<QVTKInteractor> iact;
-
-    vtkSmartPointer<vtkRenderWindow> vtk_ren_win = qvtkItem[0]->renderWindow()->renderWindow();
-    vtkSmartPointer<vtkGenericOpenGLRenderWindow> vtk_gl_renwin =
-        static_cast<vtkGenericOpenGLRenderWindow *>(vtk_ren_win.GetPointer());
-    QVTKInteractor *iact = dynamic_cast<QVTKInteractor *>(vtk_gl_renwin->GetInteractor());
-    vtkSmartPointer<vtkImagePlaneWidget> ipw[row_cnt * col_cnt * 2 - 1];
-
-    int i = 0;
-    // create ipw
-    for (i = 0; i < row_cnt * col_cnt; i++) {
-        qDebug() << "i=" << i;
-        ipw[i] = vtkSmartPointer<vtkImagePlaneWidget>::New();
-
-        int _view = current_view;
-        if (0 == i) {
-            _view = current_view_ortho;
-        }
-
-        if (i > 0) {
-            create_ipw_instance(ipw[i], _view, v16, qvtkItem[i]->renderer(), iact, slice_idx_base + i * 3 - 1);
-            slice_pos[i - 1] = ipw[i]->GetSlicePosition();
-            create_slice_pos_line(slice_pos[i - 1], ipw[0], _view, qvtkItem[0]->renderer());
-        } else {
-            // view-0 first view which is orthonocal to current-view
-            qDebug() << "current_view_ortho=" << _view;
-            create_ipw_instance(ipw[i], _view, v16, qvtkItem[i]->renderer(), iact, slice_idx_base + i * 3 - 1);
-#if 0
-            double viewup[3] = {0.0};
-            double normal[3] = {0.0};
-            ipw[i]->GetNormal(normal);
-            if (normal[2] > 0.9) {
-                // PlaneA n=(0,0,1), viewup=(0,1,0)
-                viewup[1] = 1.0;
-            } else if (normal[1] > 0.9) {
-                // PlaneC n=(0,1,0), viewup=(0,0,-1)
-                viewup[2] = -1.0;
-            } else {
-                // PlaneT n=(-1,0,0), viewup=(0,1,0)
-                viewup[1] = 1.0;
-            }
-            qvtkItem[i]->renderer()->ResetCamera();
-            qvtkItem[i]->renderer()->GetActiveCamera()->SetViewUp(viewup);
-            qvtkItem[i]->renderer()->GetActiveCamera()->GetViewUp(viewup);
-            qDebug() << "viewup=" << viewup[0] << viewup[1] << viewup[2];
-#endif
-        }
-    }
-
-    // qvtkItem[3]->update();
-    for (i = 0; i < row_cnt * col_cnt; i++) {
-        ipw[i]->On();
-    }
-    reset_img_plane_view_cam(qvtkItem[0]->renderer(), current_view_ortho);
-    for (i = 1; i < row_cnt * col_cnt; i++) {
-        reset_img_plane_view_cam(qvtkItem[i]->renderer(), current_view);
-    }
-
+    msc.show();
     return app.exec();
 }
