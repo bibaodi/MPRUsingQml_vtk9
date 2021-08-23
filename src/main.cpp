@@ -33,6 +33,7 @@
 #include <QTimer>
 #include <QUrl>
 //---
+#include "multiplanarview.h"
 #include "multisliceview.h"
 
 const QString k_data_dir = "/home/eton/opt/data/headsq/quarter";
@@ -92,17 +93,17 @@ int create_ipw_instance(vtkSmartPointer<vtkImagePlaneWidget> &ipw, int orientati
 
     double color[3] = {0, 0, 0};
     qDebug() << "create_ipw_instance: orientation=" << orientation;
-    if (ViewType::T == orientation) {
+    if (ViewType::MultiSliceVT_T == orientation) {
         qDebug() << "create_ipw_instance: branch=x";
         ipw->SetPlaneOrientationToXAxes();
         ipw->SetSliceIndex(slice_idx);
         color[1] = 1;
-    } else if (ViewType::C == orientation) {
+    } else if (ViewType::MultiSliceVT_C == orientation) {
         qDebug() << "create_ipw_instance: branch=y";
         ipw->SetPlaneOrientationToYAxes();
         ipw->SetSliceIndex(slice_idx);
         color[0] = 1;
-    } else if (ViewType::A == orientation) {
+    } else if (ViewType::MultiSliceVT_A == orientation) {
         qDebug() << "create_ipw_instance: branch= others";
         ipw->SetPlaneOrientationToZAxes();
         ipw->SetSliceIndex(slice_idx);
@@ -122,12 +123,12 @@ int create_ipw_instance(vtkSmartPointer<vtkImagePlaneWidget> &ipw, int orientati
 int reset_img_plane_view_cam(vtkRenderer *ren, int direction) {
     ren->ResetCamera();
     vtkCamera *cam = ren->GetActiveCamera();
-    if (ViewType::A == direction) {
+    if (ViewType::MultiSliceVT_A == direction) {
         cam->SetViewUp(0, -1, 0);
-    } else if (ViewType::C == direction) {
+    } else if (ViewType::MultiSliceVT_C == direction) {
         cam->Elevation(90);
         cam->SetViewUp(0, 0, -1);
-    } else if (ViewType::T == direction) {
+    } else if (ViewType::MultiSliceVT_T == direction) {
         qDebug() << "default is Z direction";
         cam->Azimuth(-90);
         cam->SetViewUp(0, 1, 0);
@@ -136,25 +137,25 @@ int reset_img_plane_view_cam(vtkRenderer *ren, int direction) {
     return 0;
 }
 
-int create_slice_pos_line(float slice_pos, vtkSmartPointer<vtkImagePlaneWidget> &ipw0, int orientation,
+int create_slice_pos_line(float m_slice_pos, vtkSmartPointer<vtkImagePlaneWidget> &ipw0, int orientation,
                           vtkRenderer *ren) {
 
     double ipw0_pos = ipw0->GetSlicePosition(); // when ipw0 == A then this is a z;
 
     // Create two points, P0 and P1
-    double p0[3] = {0.0, slice_pos, ipw0_pos}; // when slice ==C then pos is a y; z from 0 to max
-    double p1[3] = {201.6, slice_pos, ipw0_pos};
+    double p0[3] = {0.0, m_slice_pos, ipw0_pos}; // when slice ==C then pos is a y; z from 0 to max
+    double p1[3] = {201.6, m_slice_pos, ipw0_pos};
     vtkNew<vtkLineSource> lineSource;
     lineSource->SetPoint1(p0);
     lineSource->SetPoint2(p1);
 
     // Visualize
     double color[3] = {0, 0, 0};
-    if (ViewType::T == orientation) {
+    if (ViewType::MultiSliceVT_T == orientation) {
         color[1] = 1;
-    } else if (ViewType::C == orientation) {
+    } else if (ViewType::MultiSliceVT_C == orientation) {
         color[0] = 1;
-    } else if (ViewType::A == orientation) {
+    } else if (ViewType::MultiSliceVT_A == orientation) {
         color[2] = 1;
     }
 
@@ -168,6 +169,8 @@ int create_slice_pos_line(float slice_pos, vtkSmartPointer<vtkImagePlaneWidget> 
     return 0;
 }
 
+#define view_type 2 // 2=mpr; 3=mslice3x3; 4=mslice4x4
+
 int main(int argc, char *argv[]) {
     QQuickVTKRenderWindow::setupGraphicsBackend();
 
@@ -178,7 +181,14 @@ int main(int argc, char *argv[]) {
     QQmlApplicationEngine engine;
     qDebug() << "QML2_IMPORT_PATH:" << engine.importPathList();
     engine.addImportPath("/usr/local/lib/qml");
-    const QUrl url(QStringLiteral("qrc:/MultiSlice3x3.qml"));
+
+    QLatin1String qml_name("qrc:/MPR_3d_view.qml");
+    if (view_type == 3) {
+        qml_name = QLatin1String("qrc:/MultiSlice3x3.qml");
+    } else if (view_type == 4) {
+        qml_name = QLatin1String("qrc:/MultiSlice4x4.qml");
+    }
+    const QUrl url(qml_name);
     QObject::connect(
         &engine, &QQmlApplicationEngine::objectCreated, &app,
         [url](QObject *obj, const QUrl &objUrl) {
@@ -204,9 +214,13 @@ int main(int argc, char *argv[]) {
     double spacing[3];
     v16->GetOutput()->GetSpacing(spacing);
     qDebug() << "v16 info spacing:" << spacing[0] << spacing[1] << spacing[2];
-    MultiSliceView msc(v16, nullptr, topLevel, 3, ViewType::C); //>>>>
-    qDebug() << "msc instance create finish~";
-
-    msc.show();
+    if (view_type > 2) {
+        MultiSliceView msc(v16, nullptr, topLevel, view_type, ViewType::MultiSliceVT_C); //>>>>
+        qDebug() << "msc instance create finish~";
+        msc.show();
+    } else {
+        MultiPlanarView mpr(v16, nullptr, topLevel);
+        mpr.show();
+    }
     return app.exec();
 }

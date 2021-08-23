@@ -56,6 +56,8 @@ set(PROJECT_SOURCES
         #main_mpr.cpp
         multisliceview.cpp
         multisliceview.h
+        multiplanarview.cpp
+        multiplanarview.h
         qml.qrc
 )
 
