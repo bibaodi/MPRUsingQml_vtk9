@@ -50,6 +50,8 @@ class MultiSliceView : public QObject {
     QObject *m_topLevel;
     QQuickWindow *m_quickwin;
     QVTKInteractor *m_iact;
+
+  public:
     vtkSmartPointer<vtkImagePlaneWidget> m_ipw_arr[ThreeDMultiSliceLayout4 * ThreeDMultiSliceLayout4];
     QQuickVTKRenderItem *m_qvtkRen_arr[ThreeDMultiSliceLayout4 * ThreeDMultiSliceLayout4];
     const int current_view;

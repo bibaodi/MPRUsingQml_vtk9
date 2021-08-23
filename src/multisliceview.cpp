@@ -40,6 +40,9 @@ MultiSliceView::MultiSliceView(vtkSmartPointer<vtkVolume16Reader> _v16, QObject 
     vtkSmartPointer<vtkGenericOpenGLRenderWindow> vtk_gl_renwin =
         static_cast<vtkGenericOpenGLRenderWindow *>(vtk_ren_win.GetPointer());
     m_iact = dynamic_cast<QVTKInteractor *>(vtk_gl_renwin->GetInteractor());
+    qDebug() << "iact print self:";
+#include <iostream>
+    m_iact->PrintSelf(std::cout, vtkIndent(4));
 
     if (_r == row_cnt && _c == col_cnt) {
         m_render_ready = true;

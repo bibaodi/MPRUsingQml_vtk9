@@ -57,6 +57,7 @@ MultiPlanarView::MultiPlanarView(vtkSmartPointer<vtkVolume16Reader> _v16, QObjec
             return;
         }
     }
+    //--07 make it available
     m_render_ready = true;
 }
 
@@ -79,7 +80,7 @@ int MultiPlanarView::create_outline_actor(vtkRenderer *ren) {
 
 int MultiPlanarView::create_ipw_instance(vtkSmartPointer<vtkImagePlaneWidget> &ipw, int orientation,
                                          vtkSmartPointer<vtkVolume16Reader> &v16, vtkRenderer *ren,
-                                         QVTKInteractor *m_iact) {
+                                         QVTKInteractor *iact) {
     if (!ipw) {
         return -1;
     }
@@ -89,16 +90,16 @@ int MultiPlanarView::create_ipw_instance(vtkSmartPointer<vtkImagePlaneWidget> &i
     if (!ren) {
         return -3;
     }
-    if (!m_iact) {
+    if (!iact) {
         return -4;
     }
     ipw->SetInputConnection(v16->GetOutputPort());
     ipw->SetCurrentRenderer(ren);
-    ipw->SetInteractor(m_iact);
+    ipw->SetInteractor(iact);
     ipw->RestrictPlaneToVolumeOn();
     // image style not allowed 3d rotate
     vtkNew<vtkInteractorStyleImage> style;
-    m_iact->SetInteractorStyle(style);
+    iact->SetInteractorStyle(style);
 
     double color[3] = {0, 0, 0};
     qDebug() << "create_ipw_instance: orientation=" << orientation;
@@ -137,9 +138,13 @@ int MultiPlanarView::reset_img_plane_view_cam(vtkRenderer *ren, int direction) {
         cam->Elevation(90);
         cam->SetViewUp(0, 0, -1);
     } else if (MPR_Plane::MultiPlane_T == direction) {
-        qDebug() << "default is Z direction";
         cam->Azimuth(-90);
         cam->SetViewUp(0, 1, 0);
+    } else { // 3d view
+        cam->Elevation(-20);
+        cam->SetViewUp(0, -1, 0);
+        cam->Azimuth(-30);
+        ren->ResetCameraClippingRange();
     }
     cam->OrthogonalizeViewUp();
     return 0;
@@ -158,9 +163,7 @@ int MultiPlanarView::show() {
         reset_img_plane_view_cam(m_qvtkRen_arr[i]->renderer(), i);
     }
     // 3d view
-    for (i = 0; i < 3; i++) {
-        reset_img_plane_view_cam(m_qvtkRen_arr[3]->renderer(), i);
-    }
+    reset_img_plane_view_cam(m_qvtkRen_arr[3]->renderer(), 4);
     m_quickwin->show(); // without this code, nothing will display --eton@210810
     return 0;
 }
