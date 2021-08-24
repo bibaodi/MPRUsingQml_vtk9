@@ -32,8 +32,6 @@
 #define ThreeDMultiSliceLayout3 3
 #define ThreeDMultiSliceLayout4 (ThreeDMultiSliceLayout3 + 1)
 
-enum ViewType { MultiSliceVT_A = 0, MultiSliceVT_C, MultiSliceVT_T, MultiSliceVT_3D };
-
 class MultiSliceView : public QObject {
     Q_OBJECT
   public:
@@ -41,6 +39,8 @@ class MultiSliceView : public QObject {
                             QObject *root = nullptr, const int layout = 3, const int view = 1);
     void print();
     int show();
+
+    enum ViewType { MultiSliceVT_A = 0, MultiSliceVT_C, MultiSliceVT_T, MultiSliceVT_3D };
 
   private:
     vtkSmartPointer<vtkVolume16Reader> m_v16; // this is the data pointer, will be replaced by general dataType;

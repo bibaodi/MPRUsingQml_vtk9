@@ -66,8 +66,8 @@ MultiPlanarView::MultiPlanarView(vtkSmartPointer<vtkVolume16Reader> _v16, QObjec
         }
     }
     //--03 create outline
-    create_outline_actor(m_qvtkRen_arr[MPR_Plane::MultiPlane_3D]->renderer());
-    m_qvtkRen_arr[MPR_Plane::MultiPlane_3D]->update();
+    create_outline_actor(m_qvtkRen_arr[MultiPlane_3D]->renderer());
+    m_qvtkRen_arr[MultiPlane_3D]->update();
     //--04 get window and interactor
     vtkSmartPointer<vtkRenderWindow> vtk_ren_win = m_qvtkRen_arr[0]->renderWindow()->renderWindow();
     vtkSmartPointer<vtkGenericOpenGLRenderWindow> vtk_gl_renwin =
@@ -151,15 +151,15 @@ int MultiPlanarView::create_ipw_instance(vtkSmartPointer<vtkImagePlaneWidget> &i
 
     double color[3] = {0, 0, 0};
     qDebug() << "create_ipw_instance: orientation=" << orientation;
-    if (MPR_Plane::MultiPlane_T == orientation) {
+    if (MultiPlane_T == orientation) {
         qDebug() << "create_ipw_instance: branch=x";
         ipw->SetPlaneOrientationToXAxes();
         color[1] = 1;
-    } else if (MPR_Plane::MultiPlane_C == orientation) {
+    } else if (MultiPlane_C == orientation) {
         qDebug() << "create_ipw_instance: branch=y";
         ipw->SetPlaneOrientationToYAxes();
         color[0] = 1;
-    } else if (MPR_Plane::MultiPlane_A == orientation) {
+    } else if (MultiPlane_A == orientation) {
         qDebug() << "create_ipw_instance: branch= others";
         ipw->SetPlaneOrientationToZAxes();
         color[2] = 1;
@@ -179,12 +179,12 @@ int MultiPlanarView::reset_img_plane_view_cam(vtkRenderer *ren, int direction) {
     }
     ren->ResetCamera();
     vtkCamera *cam = ren->GetActiveCamera();
-    if (MPR_Plane::MultiPlane_A == direction) {
+    if (MultiPlane_A == direction) {
         cam->SetViewUp(0, -1, 0);
-    } else if (MPR_Plane::MultiPlane_C == direction) {
+    } else if (MultiPlane_C == direction) {
         cam->Elevation(90);
         cam->SetViewUp(0, 0, -1);
-    } else if (MPR_Plane::MultiPlane_T == direction) {
+    } else if (MultiPlane_T == direction) {
         cam->Azimuth(-90);
         cam->SetViewUp(0, 1, 0);
     } else { // 3d view

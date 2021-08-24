@@ -10,12 +10,12 @@ MultiSliceView::MultiSliceView(vtkSmartPointer<vtkVolume16Reader> _v16, QObject 
     slice_idx_base = 0;
     slice_step = 3;
     // make the first view orthogonal to current view
-    if (ViewType::MultiSliceVT_A == current_view) {
-        m_view_ortho = ViewType::MultiSliceVT_T;
-    } else if (ViewType::MultiSliceVT_C == current_view) {
-        m_view_ortho = ViewType::MultiSliceVT_A;
-    } else if (ViewType::MultiSliceVT_T == current_view) {
-        m_view_ortho = ViewType::MultiSliceVT_C;
+    if (MultiSliceVT_A == current_view) {
+        m_view_ortho = MultiSliceVT_T;
+    } else if (MultiSliceVT_C == current_view) {
+        m_view_ortho = MultiSliceVT_A;
+    } else if (MultiSliceVT_T == current_view) {
+        m_view_ortho = MultiSliceVT_C;
     }
     if (nullptr == m_topLevel) {
         qDebug() << "qml root item is nullptr";
@@ -108,17 +108,17 @@ int MultiSliceView::create_ipw_instance(vtkSmartPointer<vtkImagePlaneWidget> &ip
 
     double color[3] = {0, 0, 0};
     qDebug() << "create_ipw_instance: orientation=" << orientation;
-    if (ViewType::MultiSliceVT_T == orientation) {
+    if (MultiSliceVT_T == orientation) {
         qDebug() << "create_ipw_instance: branch=x";
         ipw->SetPlaneOrientationToXAxes();
         ipw->SetSliceIndex(slice_idx);
         color[1] = 1;
-    } else if (ViewType::MultiSliceVT_C == orientation) {
+    } else if (MultiSliceVT_C == orientation) {
         qDebug() << "create_ipw_instance: branch=y";
         ipw->SetPlaneOrientationToYAxes();
         ipw->SetSliceIndex(slice_idx);
         color[0] = 1;
-    } else if (ViewType::MultiSliceVT_A == orientation) {
+    } else if (MultiSliceVT_A == orientation) {
         qDebug() << "create_ipw_instance: branch= others";
         ipw->SetPlaneOrientationToZAxes();
         ipw->SetSliceIndex(slice_idx);
@@ -140,7 +140,7 @@ int MultiSliceView::create_slice_pos_line(float m_slice_pos, vtkSmartPointer<vtk
     if (!ren) {
         return -3;
     }
-    if (orientation < ViewType::MultiSliceVT_A || orientation >= ViewType::MultiSliceVT_3D) {
+    if (orientation < MultiSliceVT_A || orientation >= MultiSliceVT_3D) {
         return -4;
     }
     // TODO: data's coordination bounding need to be variant
@@ -149,15 +149,15 @@ int MultiSliceView::create_slice_pos_line(float m_slice_pos, vtkSmartPointer<vtk
     double p1[3] = {201.6, 201.6, 138.0};
     // Visualize
     double color[3] = {0, 0, 0};
-    if (ViewType::MultiSliceVT_T == orientation) {
+    if (MultiSliceVT_T == orientation) {
         color[1] = 1;
         p1[0] = p0[0] = m_slice_pos;
         p1[1] = p0[1] = ipw0_pos;
-    } else if (ViewType::MultiSliceVT_C == orientation) {
+    } else if (MultiSliceVT_C == orientation) {
         color[0] = 1;
         p1[1] = p0[1] = m_slice_pos;
         p1[2] = p0[2] = ipw0_pos;
-    } else if (ViewType::MultiSliceVT_A == orientation) {
+    } else if (MultiSliceVT_A == orientation) {
         color[2] = 1;
         p1[2] = p0[2] = m_slice_pos;
         p1[0] = p0[0] = ipw0_pos;
@@ -183,12 +183,12 @@ int MultiSliceView::reset_img_plane_view_cam(vtkRenderer *ren, int direction) {
     }
     ren->ResetCamera();
     vtkCamera *cam = ren->GetActiveCamera();
-    if (ViewType::MultiSliceVT_A == direction) {
+    if (MultiSliceVT_A == direction) {
         cam->SetViewUp(0, -1, 0);
-    } else if (ViewType::MultiSliceVT_C == direction) {
+    } else if (MultiSliceVT_C == direction) {
         cam->Elevation(90);
         cam->SetViewUp(0, 0, -1);
-    } else if (ViewType::MultiSliceVT_T == direction) {
+    } else if (MultiSliceVT_T == direction) {
         qDebug() << "default is Z direction";
         cam->Azimuth(-90);
         cam->SetViewUp(0, 1, 0);

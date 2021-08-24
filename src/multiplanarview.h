@@ -35,8 +35,6 @@
 #define THREED_MPR_PLANE_ACT 3
 #define THREED_MPR_PLANE_ACT3D (THREED_MPR_PLANE_ACT + THREED_MPR_PLANE_3D)
 
-enum MPR_Plane { MultiPlane_A = 0, MultiPlane_C, MultiPlane_T, MultiPlane_3D };
-
 class MultiPlanarView : public QObject {
     Q_OBJECT
   public:
@@ -44,6 +42,7 @@ class MultiPlanarView : public QObject {
                              QObject *root = nullptr);
     void print();
     int show();
+    enum MPR_Plane { MultiPlane_A = 0, MultiPlane_C, MultiPlane_T, MultiPlane_3D };
 
   public:
     vtkSmartPointer<vtkVolume16Reader> m_v16; // this is the data pointer, will be replaced by general dataType;

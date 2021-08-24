@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
     v16->GetOutput()->GetSpacing(spacing);
     qDebug() << "v16 info spacing:" << spacing[0] << spacing[1] << spacing[2];
     if (view_type > 2) {
-        MultiSliceView msc(v16, nullptr, topLevel, view_type, ViewType::MultiSliceVT_C);
+        MultiSliceView msc(v16, nullptr, topLevel, view_type, MultiSliceView::MultiSliceVT_C);
         msc.show();
     } else {
         MultiPlanarView mpr(v16, nullptr, topLevel);
