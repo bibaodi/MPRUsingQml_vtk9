@@ -57,7 +57,7 @@ class MultiPlanarView : public QObject {
     int m_view_ortho;
 
     int reset_img_plane_view_cam(vtkRenderer *ren, int direction);
-    int create_outline_actor(vtkRenderer *ren);
+    int create_outline_actor(vtkSmartPointer<vtkRenderer> ren);
     int create_ipw_instance(vtkSmartPointer<vtkImagePlaneWidget> &ipw, int orientation,
                             vtkSmartPointer<vtkVolume16Reader> &v16, vtkRenderer *ren, QVTKInteractor *m_iact);
   signals:

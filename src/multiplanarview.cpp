@@ -67,6 +67,7 @@ MultiPlanarView::MultiPlanarView(vtkSmartPointer<vtkVolume16Reader> _v16, QObjec
     }
     //--03 create outline
     create_outline_actor(m_qvtkRen_arr[MPR_Plane::MultiPlane_3D]->renderer());
+    m_qvtkRen_arr[MPR_Plane::MultiPlane_3D]->update();
     //--04 get window and interactor
     vtkSmartPointer<vtkRenderWindow> vtk_ren_win = m_qvtkRen_arr[0]->renderWindow()->renderWindow();
     vtkSmartPointer<vtkGenericOpenGLRenderWindow> vtk_gl_renwin =
@@ -95,7 +96,7 @@ MultiPlanarView::MultiPlanarView(vtkSmartPointer<vtkVolume16Reader> _v16, QObjec
     }
     //--07 make it available
     m_render_ready = true;
-#if 0
+#if 1
     qDebug() << "01iact print self:";
 #include <iostream>
     m_iact->PrintSelf(std::cout, vtkIndent(4));
@@ -109,7 +110,7 @@ MultiPlanarView::MultiPlanarView(vtkSmartPointer<vtkVolume16Reader> _v16, QObjec
     }
 }
 
-int MultiPlanarView::create_outline_actor(vtkRenderer *ren) {
+int MultiPlanarView::create_outline_actor(vtkSmartPointer<vtkRenderer> ren) {
     if (!ren) {
         return -1;
     }
@@ -123,6 +124,7 @@ int MultiPlanarView::create_outline_actor(vtkRenderer *ren) {
     vtkNew<vtkActor> outlineActor;
     outlineActor->SetMapper(outlineMapper);
     ren->AddActor(outlineActor);
+
     return 0;
 }
 
@@ -202,6 +204,8 @@ int MultiPlanarView::show() {
     if (!m_render_ready) {
         return -1;
     }
+
+    m_quickwin->show(); // without this code, nothing will display --eton@210810
     int i = 0;
     for (i = 0; i < 6; i++) {
         m_ipw_arr[i]->On();
@@ -212,12 +216,11 @@ int MultiPlanarView::show() {
     }
     // 3d view
     reset_img_plane_view_cam(m_qvtkRen_arr[3]->renderer(), 4);
-#if 0
-        m_iact->Initialize();
+#if 1
+    m_iact->Initialize();
     qDebug() << "02iact print self:";
 #include <iostream>
     m_iact->PrintSelf(std::cout, vtkIndent(4));
 #endif
-    m_quickwin->show(); // without this code, nothing will display --eton@210810
     return 0;
 }
