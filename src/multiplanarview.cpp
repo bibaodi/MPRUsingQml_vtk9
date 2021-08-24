@@ -1,6 +1,41 @@
 #include "multiplanarview.h"
 #include <QQuickWindow>
 
+class QVTKRenderItemWidgetCallback : public vtkCommand {
+  public:
+    static QVTKRenderItemWidgetCallback *New() { return new QVTKRenderItemWidgetCallback; }
+
+    void Execute(vtkObject *caller, unsigned long, void *) override {
+        vtkImagePlaneWidget *planeWidget = reinterpret_cast<vtkImagePlaneWidget *>(caller);
+        int slice_idx = planeWidget->GetSliceIndex();
+        int act_idx = -1;
+        qDebug() << "callback: slice index=" << slice_idx;
+        if (ipw_3d[0] == planeWidget) {
+            act_idx = 0;
+        } else if (ipw_3d[1] == planeWidget) {
+            act_idx = 1;
+        } else if (ipw_3d[2] == planeWidget) {
+            act_idx = 2;
+        }
+        qDebug() << "callback: "
+                 << " act_index" << act_idx;
+        if (act_idx > -1) {
+            ipw_act[act_idx]->SetSliceIndex(slice_idx);
+        }
+    }
+
+    QVTKRenderItemWidgetCallback() {
+        for (int i = 0; i < 3; i++) {
+            qDebug() << "init callback:i=" << i;
+            ipw_3d[i] = nullptr;
+            ipw_act[i] = nullptr;
+        }
+    }
+
+    vtkSmartPointer<vtkImagePlaneWidget> ipw_3d[3];
+    vtkSmartPointer<vtkImagePlaneWidget> ipw_act[3];
+};
+
 MultiPlanarView::MultiPlanarView(vtkSmartPointer<vtkVolume16Reader> _v16, QObject *parent, QObject *root)
     : QObject(parent), m_topLevel(root) {
     qDebug() << "MPR view init~";
@@ -37,6 +72,7 @@ MultiPlanarView::MultiPlanarView(vtkSmartPointer<vtkVolume16Reader> _v16, QObjec
     vtkSmartPointer<vtkGenericOpenGLRenderWindow> vtk_gl_renwin =
         static_cast<vtkGenericOpenGLRenderWindow *>(vtk_ren_win.GetPointer());
     m_iact = dynamic_cast<QVTKInteractor *>(vtk_gl_renwin->GetInteractor());
+    // m_iact->Initialize();
     //--05 create ACT ipw
     int i = 0, ret = 0;
     for (i = 0; i < 3; i++) {
@@ -59,6 +95,16 @@ MultiPlanarView::MultiPlanarView(vtkSmartPointer<vtkVolume16Reader> _v16, QObjec
     }
     //--07 make it available
     m_render_ready = true;
+    qDebug() << "01iact print self:";
+#include <iostream>
+    m_iact->PrintSelf(std::cout, vtkIndent(4));
+    //--08  create callback for all three 3d-view's ipw
+    vtkNew<QVTKRenderItemWidgetCallback> ipw_cb;
+    for (i = 0; i < 3; i++) {
+        ipw_cb->ipw_act[i] = m_ipw_arr[i].GetPointer();
+        ipw_cb->ipw_3d[i] = m_ipw_arr[i + 3].GetPointer();
+        // m_ipw_arr[i + 3]->AddObserver(vtkCommand::AnyEvent, ipw_cb);
+    }
 }
 
 int MultiPlanarView::create_outline_actor(vtkRenderer *ren) {
@@ -164,6 +210,11 @@ int MultiPlanarView::show() {
     }
     // 3d view
     reset_img_plane_view_cam(m_qvtkRen_arr[3]->renderer(), 4);
+    m_iact->Initialize();
+    qDebug() << "02iact print self:";
+#include <iostream>
+    m_iact->PrintSelf(std::cout, vtkIndent(4));
+
     m_quickwin->show(); // without this code, nothing will display --eton@210810
     return 0;
 }
