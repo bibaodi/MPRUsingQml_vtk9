@@ -45,7 +45,7 @@ class MultiPlanarView : public QObject {
     void print();
     int show();
 
-  private:
+  public:
     vtkSmartPointer<vtkVolume16Reader> m_v16; // this is the data pointer, will be replaced by general dataType;
     bool m_render_ready = false;
     double m_slice_pos[3];

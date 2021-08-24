@@ -68,9 +68,15 @@ int main(int argc, char *argv[]) {
     engine.load(url);
     // get root window
     QObject *topLevel = engine.rootObjects().value(0);
-#if 0
+#if 1
     QQuickWindow *window = qobject_cast<QQuickWindow *>(topLevel);
     window->show(); // without this code, nothing will display --eton@210810
+    QQuickVTKRenderItem *qvtkItem = topLevel->findChild<QQuickVTKRenderItem *>("MPRView_A");
+    vtkSmartPointer<vtkRenderWindow> renw = qvtkItem->renderWindow()->renderWindow();
+    vtkSmartPointer<vtkGenericOpenGLRenderWindow> renwin =
+        static_cast<vtkGenericOpenGLRenderWindow *>(renw.GetPointer());
+    QVTKInteractor *iact = dynamic_cast<QVTKInteractor *>(renwin->GetInteractor());
+    qDebug() << "pointer in main: iact=" << iact;
 #endif
     // use Volume16Reader read data
     vtkSmartPointer<vtkVolume16Reader> v16 = vtkSmartPointer<vtkVolume16Reader>::New();
@@ -93,6 +99,8 @@ int main(int argc, char *argv[]) {
         // msc.m_ipw_arr[0]->On();
     } else {
         MultiPlanarView mpr(v16, nullptr, topLevel);
+
+        qDebug() << "pointer in class: iact=" << mpr.m_iact;
         mpr.show();
     }
     return app.exec();

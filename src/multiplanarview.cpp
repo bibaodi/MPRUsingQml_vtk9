@@ -95,9 +95,11 @@ MultiPlanarView::MultiPlanarView(vtkSmartPointer<vtkVolume16Reader> _v16, QObjec
     }
     //--07 make it available
     m_render_ready = true;
+#if 0
     qDebug() << "01iact print self:";
 #include <iostream>
     m_iact->PrintSelf(std::cout, vtkIndent(4));
+#endif
     //--08  create callback for all three 3d-view's ipw
     vtkNew<QVTKRenderItemWidgetCallback> ipw_cb;
     for (i = 0; i < 3; i++) {
@@ -210,11 +212,12 @@ int MultiPlanarView::show() {
     }
     // 3d view
     reset_img_plane_view_cam(m_qvtkRen_arr[3]->renderer(), 4);
-    m_iact->Initialize();
+#if 0
+        m_iact->Initialize();
     qDebug() << "02iact print self:";
 #include <iostream>
     m_iact->PrintSelf(std::cout, vtkIndent(4));
-
+#endif
     m_quickwin->show(); // without this code, nothing will display --eton@210810
     return 0;
 }
