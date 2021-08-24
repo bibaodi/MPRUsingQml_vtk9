@@ -72,10 +72,11 @@ MultiPlanarView::MultiPlanarView(vtkSmartPointer<vtkVolume16Reader> _v16, QObjec
     vtkSmartPointer<vtkRenderWindow> vtk_ren_win = m_qvtkRen_arr[0]->renderWindow()->renderWindow();
     vtkSmartPointer<vtkGenericOpenGLRenderWindow> vtk_gl_renwin =
         static_cast<vtkGenericOpenGLRenderWindow *>(vtk_ren_win.GetPointer());
-    m_iact = dynamic_cast<QVTKInteractor *>(vtk_gl_renwin->GetInteractor());
-    // m_iact->Initialize();
+    m_iact = (dynamic_cast<QVTKInteractor *>(vtk_gl_renwin->GetInteractor()));
     //--05 create ACT ipw
+
     int i = 0, ret = 0;
+    vtkNew<vtkInteractorStyleImage> style;
     for (i = 0; i < 3; i++) {
         m_ipw_arr[i] = vtkSmartPointer<vtkImagePlaneWidget>::New();
         ret = create_ipw_instance(m_ipw_arr[i], i, m_v16, m_qvtkRen_arr[i]->renderer(), m_iact);
@@ -96,18 +97,18 @@ MultiPlanarView::MultiPlanarView(vtkSmartPointer<vtkVolume16Reader> _v16, QObjec
     }
     //--07 make it available
     m_render_ready = true;
-#if 1
-    qDebug() << "01iact print self:";
-#include <iostream>
-    m_iact->PrintSelf(std::cout, vtkIndent(4));
-#endif
     //--08  create callback for all three 3d-view's ipw
     vtkNew<QVTKRenderItemWidgetCallback> ipw_cb;
     for (i = 0; i < 3; i++) {
         ipw_cb->ipw_act[i] = m_ipw_arr[i].GetPointer();
         ipw_cb->ipw_3d[i] = m_ipw_arr[i + 3].GetPointer();
-        // m_ipw_arr[i + 3]->AddObserver(vtkCommand::AnyEvent, ipw_cb);
+        m_ipw_arr[i + 3]->AddObserver(vtkCommand::AnyEvent, ipw_cb);
     }
+#if 0
+    qDebug() << "01iact print self:" << m_iact;
+#include <iostream>
+    m_iact->PrintSelf(std::cout, vtkIndent(4));
+#endif
 }
 
 int MultiPlanarView::create_outline_actor(vtkSmartPointer<vtkRenderer> ren) {
@@ -147,9 +148,6 @@ int MultiPlanarView::create_ipw_instance(vtkSmartPointer<vtkImagePlaneWidget> &i
     ipw->SetCurrentRenderer(ren);
     ipw->SetInteractor(iact);
     ipw->RestrictPlaneToVolumeOn();
-    // image style not allowed 3d rotate
-    vtkNew<vtkInteractorStyleImage> style;
-    iact->SetInteractorStyle(style);
 
     double color[3] = {0, 0, 0};
     qDebug() << "create_ipw_instance: orientation=" << orientation;
@@ -172,7 +170,6 @@ int MultiPlanarView::create_ipw_instance(vtkSmartPointer<vtkImagePlaneWidget> &i
 
     ipw->SetSlicePosition(m_slice_pos[orientation]);
     ipw->GetPlaneProperty()->SetColor(color);
-
     return 0;
 }
 
@@ -209,17 +206,22 @@ int MultiPlanarView::show() {
     int i = 0;
     for (i = 0; i < 6; i++) {
         m_ipw_arr[i]->On();
+        if (i < 3) {
+            m_ipw_arr[i]->GetCurrentRenderer()->InteractiveOff();
+        }
+        qDebug() << i << ":get interaction=" << m_ipw_arr[i]->GetInteraction();
     }
+
     // act view
     for (i = 0; i < 3; i++) {
         reset_img_plane_view_cam(m_qvtkRen_arr[i]->renderer(), i);
     }
     // 3d view
     reset_img_plane_view_cam(m_qvtkRen_arr[3]->renderer(), 4);
-#if 1
-    m_iact->Initialize();
-    qDebug() << "02iact print self:";
+#if 0
+    qDebug() << "02iact print self:" << m_iact;
 #include <iostream>
+    m_iact->RemoveAllObservers();
     m_iact->PrintSelf(std::cout, vtkIndent(4));
 #endif
     return 0;
