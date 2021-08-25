@@ -61,7 +61,7 @@ class QVTKRenderItemWidgetCallback : public vtkCommand {
 
 MultiPlanarView::MultiPlanarView(vtkSmartPointer<vtkVolume16Reader> _v16, QObject *parent, QObject *root)
     : QObject(parent), m_topLevel(root) {
-
+    m_points = vtkSmartPointer<vtkPoints>::New();
     qDebug() << "MPR view init~";
     m_v16 = _v16;
     if (!m_v16) {
@@ -133,7 +133,9 @@ MultiPlanarView::MultiPlanarView(vtkSmartPointer<vtkVolume16Reader> _v16, QObjec
         m_ipw_cb->ipw_3d[i] = m_ipw_arr[i + 3].GetPointer();
         m_ipw_arr[3 + i]->AddObserver(vtkCommand::AnyEvent, m_ipw_cb);
     }
-    //--09 temp for event test
+    //--09a add probe marker
+    create_probe_marker(m_qvtkRen_arr[MultiPlane_3D]->renderer());
+    //--10 temp for event test
     QObject *btn_select = m_topLevel->findChild<QObject *>("btn_select");
     QObject *btn_translate = m_topLevel->findChild<QObject *>("btn_translate");
     if (!btn_select || !btn_translate) {
@@ -149,6 +151,56 @@ MultiPlanarView::MultiPlanarView(vtkSmartPointer<vtkVolume16Reader> _v16, QObjec
     m_iact->PrintSelf(std::cout, vtkIndent(4));
 #endif
     qDebug() << "MPR view init~ Finish!";
+}
+
+int MultiPlanarView::update_probe_point(double p) {
+    if (!m_points) {
+        return -1;
+    }
+    double pt[3] = {m_slice_pos_range[1], m_slice_pos_range[2], p};
+    m_points->SetPoint(0, pt);
+    m_points->Modified();
+    return 0;
+}
+
+#include "vtkCellArray.h"
+#include "vtkNamedColors.h"
+
+int MultiPlanarView::create_probe_marker(vtkSmartPointer<vtkRenderer> ren) {
+    if (!ren) {
+        return -1;
+    }
+    vtkNew<vtkNamedColors> colors;
+    double m_pts[3] = {m_slice_pos_range[1], m_slice_pos_range[2], m_slice_pos[2]};
+    vtkIdType point_id[1] = {0};
+    // vtkNew<vtkPoints> m_points;
+    if (m_points->GetNumberOfPoints() < 1) {
+        point_id[0] = m_points->InsertNextPoint(m_pts);
+    } else {
+        m_points->SetPoint(point_id[0], m_pts);
+    }
+    vtkNew<vtkCellArray> vertices;
+    vertices->InsertNextCell(1, point_id);
+
+    // Create a polydata object
+    vtkNew<vtkPolyData> point_pd;
+
+    // Set the points and vertices we created as the geometry and topology of the
+    // polydata
+    point_pd->SetPoints(m_points);
+    point_pd->SetVerts(vertices);
+
+    // Visualize
+    vtkNew<vtkPolyDataMapper> mapper;
+    mapper->SetInputData(point_pd);
+
+    vtkNew<vtkActor> actor;
+    actor->SetMapper(mapper);
+    actor->GetProperty()->SetColor(colors->GetColor3d("yellow_ochre").GetData());
+    actor->GetProperty()->SetPointSize(20);
+
+    ren->AddActor(actor);
+    return 0;
 }
 
 int MultiPlanarView::create_outline_actor(vtkSmartPointer<vtkRenderer> ren) {
@@ -219,7 +271,9 @@ void MultiPlanarView::move_slice(int plane, int direction) {
     delta *= m_spacing[p];
     m_slice_pos[p] += delta;
     m_slice_pos[p] = std::max(m_slice_pos_range[p * 2], std::min(m_slice_pos_range[p * 2 + 1], m_slice_pos[p]));
-
+    if (MultiPlane_A == (2 - plane)) {
+        update_probe_point(m_slice_pos[p]);
+    }
     return;
 }
 
@@ -283,7 +337,7 @@ int MultiPlanarView::show() {
 #if 1
     qDebug() << "02iact print self:" << m_iact;
 #include <iostream>
-    // m_iact->RemoveAllObservers();
+    m_iact->RemoveAllObservers();
 
     m_iact->AddObserver(vtkCommand::LeftButtonPressEvent, m_ipw_cb);
     // m_iact->AddObserver(vtkCommand::MouseMoveEvent, m_ipw_cb);

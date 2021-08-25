@@ -26,6 +26,7 @@
 #include "vtkImageData.h"
 #include "vtkNew.h"
 #include "vtkPNGWriter.h"
+#include "vtkPoints.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkRenderer.h"
 //--end
@@ -61,6 +62,10 @@ class MultiPlanarView : public QObject {
     QQuickVTKRenderItem *m_qvtkRen_arr[THREED_MPR_PLANE]; // 4 ren, the last has 3 ipw
     int m_view_ortho;
 
+  private:
+    vtkSmartPointer<vtkPoints> m_points;
+    int update_probe_point(double);
+    int create_probe_marker(vtkSmartPointer<vtkRenderer> ren);
     int reset_img_plane_view_cam(vtkRenderer *ren, int direction);
     int create_outline_actor(vtkSmartPointer<vtkRenderer> ren);
     int create_ipw_instance(vtkSmartPointer<vtkImagePlaneWidget> &ipw, int orientation,

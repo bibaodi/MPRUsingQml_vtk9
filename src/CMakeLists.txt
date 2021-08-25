@@ -30,6 +30,7 @@ endif()
 find_package(VTK
   COMPONENTS
     CommonCore
+    CommonColor
     GUISupportQt
     GUISupportQtQuick
     IOImage
