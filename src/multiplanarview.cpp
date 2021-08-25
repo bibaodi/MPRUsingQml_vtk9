@@ -62,6 +62,7 @@ class QVTKRenderItemWidgetCallback : public vtkCommand {
 MultiPlanarView::MultiPlanarView(vtkSmartPointer<vtkVolume16Reader> _v16, QObject *parent, QObject *root)
     : QObject(parent), m_topLevel(root) {
     m_points = vtkSmartPointer<vtkPoints>::New();
+    m_linesource = vtkSmartPointer<vtkLineSource>::New();
     qDebug() << "MPR view init~";
     m_v16 = _v16;
     if (!m_v16) {
@@ -157,9 +158,15 @@ int MultiPlanarView::update_probe_point(double p) {
     if (!m_points) {
         return -1;
     }
-    double pt[3] = {m_slice_pos_range[1], m_slice_pos_range[2], p};
-    m_points->SetPoint(0, pt);
+    double pt0[3] = {m_slice_pos_range[1], m_slice_pos_range[2], p};
+    double pt1[3] = {m_slice_pos_range[0], m_slice_pos_range[2], p};
+    m_points->SetPoint(0, pt0);
     m_points->Modified();
+
+    // line
+    m_linesource->SetPoint1(pt0);
+    m_linesource->SetPoint2(pt1);
+    m_linesource->Modified();
     return 0;
 }
 
@@ -170,14 +177,21 @@ int MultiPlanarView::create_probe_marker(vtkSmartPointer<vtkRenderer> ren) {
     if (!ren) {
         return -1;
     }
+    if (!m_points) {
+        return -2;
+    }
+    if (!m_linesource) {
+        return -3;
+    }
     vtkNew<vtkNamedColors> colors;
-    double m_pts[3] = {m_slice_pos_range[1], m_slice_pos_range[2], m_slice_pos[2]};
+    double pt0[3] = {m_slice_pos_range[1], m_slice_pos_range[2], m_slice_pos[2]};
+    double pt1[3] = {m_slice_pos_range[0], m_slice_pos_range[2], m_slice_pos[2]};
     vtkIdType point_id[1] = {0};
     // vtkNew<vtkPoints> m_points;
     if (m_points->GetNumberOfPoints() < 1) {
-        point_id[0] = m_points->InsertNextPoint(m_pts);
+        point_id[0] = m_points->InsertNextPoint(pt0);
     } else {
-        m_points->SetPoint(point_id[0], m_pts);
+        m_points->SetPoint(point_id[0], pt0);
     }
     vtkNew<vtkCellArray> vertices;
     vertices->InsertNextCell(1, point_id);
@@ -200,6 +214,17 @@ int MultiPlanarView::create_probe_marker(vtkSmartPointer<vtkRenderer> ren) {
     actor->GetProperty()->SetPointSize(20);
 
     ren->AddActor(actor);
+
+    //--line
+    m_linesource->SetPoint1(pt0);
+    m_linesource->SetPoint2(pt1);
+    vtkNew<vtkPolyDataMapper> mapper_line;
+    mapper_line->SetInputConnection(m_linesource->GetOutputPort());
+    vtkNew<vtkActor> actor_line;
+    actor_line->SetMapper(mapper_line);
+    actor_line->GetProperty()->SetLineWidth(4);
+    actor_line->GetProperty()->SetColor(colors->GetColor3d("yellow_ochre").GetData());
+    ren->AddActor(actor_line);
     return 0;
 }
 

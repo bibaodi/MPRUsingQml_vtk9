@@ -24,6 +24,7 @@
 #include "vtkConeSource.h"
 #include "vtkGenericOpenGLRenderWindow.h"
 #include "vtkImageData.h"
+#include "vtkLineSource.h"
 #include "vtkNew.h"
 #include "vtkPNGWriter.h"
 #include "vtkPoints.h"
@@ -64,6 +65,7 @@ class MultiPlanarView : public QObject {
 
   private:
     vtkSmartPointer<vtkPoints> m_points;
+    vtkSmartPointer<vtkLineSource> m_linesource;
     int update_probe_point(double);
     int create_probe_marker(vtkSmartPointer<vtkRenderer> ren);
     int reset_img_plane_view_cam(vtkRenderer *ren, int direction);
