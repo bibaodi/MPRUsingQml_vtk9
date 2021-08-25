@@ -96,8 +96,9 @@ int main(int argc, char *argv[]) {
         MultiSliceView msc(v16, nullptr, topLevel, view_type, MultiSliceView::MultiSliceVT_C);
         msc.show();
     } else {
-        MultiPlanarView mpr(v16, nullptr, topLevel);
-        mpr.show();
+        qDebug() << "branch: multi planar";
+        MultiPlanarView *mpr = new MultiPlanarView(v16, nullptr, topLevel);
+        mpr->show();
     }
     return app.exec();
 }

@@ -1,15 +1,36 @@
 #include "multiplanarview.h"
 #include <QQuickWindow>
+#include <algorithm>
 
 class QVTKRenderItemWidgetCallback : public vtkCommand {
   public:
     static QVTKRenderItemWidgetCallback *New() { return new QVTKRenderItemWidgetCallback; }
 
-    void Execute(vtkObject *caller, unsigned long, void *) override {
+    void Execute(vtkObject *caller, unsigned long event, void *calldata) override {
+        if (!m_mpv) {
+            qDebug() << "mpv is null";
+            return;
+        }
+        qDebug() << "eventID=" << event << "\t calldata-ptr=" << calldata;
+        int slice_delta = 0;
+        if (vtkCommand::MouseWheelForwardEvent == event) {
+            slice_delta = 1;
+        } else if (vtkCommand::MouseWheelBackwardEvent == event) {
+            slice_delta = -1;
+        }
+        if (vtkCommand::LeftButtonPressEvent == event) {
+            m_activate_plane = (m_activate_plane + 1) % 3;
+        }
+        qDebug() << "plane = " << m_activate_plane << "slice delta:" << slice_delta;
+        if (1 == abs(slice_delta)) {
+            m_mpv->move_slice(m_activate_plane, slice_delta);
+            m_mpv->update_plane_position();
+        }
+        // return;
         vtkImagePlaneWidget *planeWidget = reinterpret_cast<vtkImagePlaneWidget *>(caller);
         int slice_idx = planeWidget->GetSliceIndex();
         int act_idx = -1;
-        qDebug() << "callback: slice index=" << slice_idx;
+        qDebug() << "callback: slice index=" << slice_idx << " act_index" << act_idx;
         if (ipw_3d[0] == planeWidget) {
             act_idx = 0;
         } else if (ipw_3d[1] == planeWidget) {
@@ -17,14 +38,14 @@ class QVTKRenderItemWidgetCallback : public vtkCommand {
         } else if (ipw_3d[2] == planeWidget) {
             act_idx = 2;
         }
-        qDebug() << "callback: "
-                 << " act_index" << act_idx;
         if (act_idx > -1) {
             ipw_act[act_idx]->SetSliceIndex(slice_idx);
         }
     }
 
     QVTKRenderItemWidgetCallback() {
+        m_mpv = nullptr;
+        m_activate_plane = 0;
         for (int i = 0; i < 3; i++) {
             qDebug() << "init callback:i=" << i;
             ipw_3d[i] = nullptr;
@@ -34,10 +55,13 @@ class QVTKRenderItemWidgetCallback : public vtkCommand {
 
     vtkSmartPointer<vtkImagePlaneWidget> ipw_3d[3];
     vtkSmartPointer<vtkImagePlaneWidget> ipw_act[3];
+    int m_activate_plane;
+    MultiPlanarView *m_mpv;
 };
 
 MultiPlanarView::MultiPlanarView(vtkSmartPointer<vtkVolume16Reader> _v16, QObject *parent, QObject *root)
     : QObject(parent), m_topLevel(root) {
+
     qDebug() << "MPR view init~";
     m_v16 = _v16;
     if (!m_v16) {
@@ -47,9 +71,13 @@ MultiPlanarView::MultiPlanarView(vtkSmartPointer<vtkVolume16Reader> _v16, QObjec
     //--00 set default slice_position
     int *extent = m_v16->GetOutput()->GetExtent();
     double *spacing = m_v16->GetOutput()->GetSpacing();
-    m_slice_pos[0] = spacing[0] * extent[1] * 0.4;
-    m_slice_pos[1] = spacing[1] * extent[3] * 0.5;
-    m_slice_pos[2] = spacing[2] * extent[5] * 0.6;
+    for (int i = 0; i < 6; i++) {
+        if (i < 3) {
+            m_slice_pos[i] = spacing[i] * extent[2 * i + 1] * (0.4 + 0.1 * i);
+            m_spacing[i] = spacing[i];
+        }
+        m_slice_pos_range[i] = spacing[i / 2] * extent[i];
+    }
     //--01 get window
     if (nullptr == m_topLevel) {
         qDebug() << "qml root item is nullptr";
@@ -98,17 +126,29 @@ MultiPlanarView::MultiPlanarView(vtkSmartPointer<vtkVolume16Reader> _v16, QObjec
     //--07 make it available
     m_render_ready = true;
     //--08  create callback for all three 3d-view's ipw
-    vtkNew<QVTKRenderItemWidgetCallback> ipw_cb;
+    m_ipw_cb = vtkSmartPointer<QVTKRenderItemWidgetCallback>::New();
+    m_ipw_cb->m_mpv = this;
     for (i = 0; i < 3; i++) {
-        ipw_cb->ipw_act[i] = m_ipw_arr[i].GetPointer();
-        ipw_cb->ipw_3d[i] = m_ipw_arr[i + 3].GetPointer();
-        m_ipw_arr[i + 3]->AddObserver(vtkCommand::AnyEvent, ipw_cb);
+        m_ipw_cb->ipw_act[i] = m_ipw_arr[i].GetPointer();
+        m_ipw_cb->ipw_3d[i] = m_ipw_arr[i + 3].GetPointer();
+        m_ipw_arr[3 + i]->AddObserver(vtkCommand::AnyEvent, m_ipw_cb);
     }
+    //--09 temp for event test
+    QObject *btn_select = m_topLevel->findChild<QObject *>("btn_select");
+    QObject *btn_translate = m_topLevel->findChild<QObject *>("btn_translate");
+    if (!btn_select || !btn_translate) {
+        qDebug() << "Err: btn not found!!!";
+        return;
+    }
+    QObject::connect(btn_select, SIGNAL(qmlSignal(QString)), this, SLOT(cppSlot(QString)));
+    QObject::connect(btn_translate, SIGNAL(qmlSignal2(int)), this, SLOT(cppSlot2(int)));
+
 #if 0
     qDebug() << "01iact print self:" << m_iact;
 #include <iostream>
     m_iact->PrintSelf(std::cout, vtkIndent(4));
 #endif
+    qDebug() << "MPR view init~ Finish!";
 }
 
 int MultiPlanarView::create_outline_actor(vtkSmartPointer<vtkRenderer> ren) {
@@ -173,6 +213,27 @@ int MultiPlanarView::create_ipw_instance(vtkSmartPointer<vtkImagePlaneWidget> &i
     return 0;
 }
 
+void MultiPlanarView::move_slice(int plane, int direction) {
+    int p = abs(plane % 3);
+    double delta = (double)direction / abs(direction);
+    delta *= m_spacing[p];
+    m_slice_pos[p] += delta;
+    m_slice_pos[p] = std::max(m_slice_pos_range[p * 2], std::min(m_slice_pos_range[p * 2 + 1], m_slice_pos[p]));
+
+    return;
+}
+
+void MultiPlanarView::update_plane_position() {
+    for (int i = 0; i < 3; i++) {
+        qDebug() << "ipw pointer:" << m_ipw_arr[i].GetPointer() << "3d:" << m_ipw_arr[3 + i]
+                 << "\tposition=" << m_slice_pos[2 - i];
+        m_ipw_arr[i]->SetSlicePosition(m_slice_pos[2 - i]);
+        m_ipw_arr[3 + i]->SetSlicePosition(m_slice_pos[2 - i]);
+        m_ipw_arr[i]->GetCurrentRenderer()->ResetCamera();
+    }
+    return;
+}
+
 int MultiPlanarView::reset_img_plane_view_cam(vtkRenderer *ren, int direction) {
     if (!ren) {
         return -3;
@@ -191,8 +252,9 @@ int MultiPlanarView::reset_img_plane_view_cam(vtkRenderer *ren, int direction) {
         cam->Elevation(-20);
         cam->SetViewUp(0, -1, 0);
         cam->Azimuth(-30);
-        ren->ResetCameraClippingRange();
     }
+
+    ren->ResetCameraClippingRange();
     cam->OrthogonalizeViewUp();
     return 0;
 }
@@ -218,11 +280,28 @@ int MultiPlanarView::show() {
     }
     // 3d view
     reset_img_plane_view_cam(m_qvtkRen_arr[3]->renderer(), 4);
-#if 0
+#if 1
     qDebug() << "02iact print self:" << m_iact;
 #include <iostream>
-    m_iact->RemoveAllObservers();
-    m_iact->PrintSelf(std::cout, vtkIndent(4));
+    // m_iact->RemoveAllObservers();
+
+    m_iact->AddObserver(vtkCommand::LeftButtonPressEvent, m_ipw_cb);
+    // m_iact->AddObserver(vtkCommand::MouseMoveEvent, m_ipw_cb);
+    m_iact->AddObserver(vtkCommand::MouseWheelForwardEvent, m_ipw_cb);
+    m_iact->AddObserver(vtkCommand::MouseWheelBackwardEvent, m_ipw_cb);
+    // m_iact->PrintSelf(std::cout, vtkIndent(4));
 #endif
     return 0;
+}
+
+void MultiPlanarView::cppSlot(const QString &msg) {
+    qDebug() << "Called the C++ slot with message:" << msg;
+
+    return;
+}
+
+void MultiPlanarView::cppSlot2(const int num) {
+    qDebug() << "Called the C++ slot with message void" << num;
+
+    return;
 }

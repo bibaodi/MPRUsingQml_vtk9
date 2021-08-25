@@ -35,11 +35,14 @@
 #define THREED_MPR_PLANE_ACT 3
 #define THREED_MPR_PLANE_ACT3D (THREED_MPR_PLANE_ACT + THREED_MPR_PLANE_3D)
 
+class QVTKRenderItemWidgetCallback;
 class MultiPlanarView : public QObject {
     Q_OBJECT
   public:
     explicit MultiPlanarView(vtkSmartPointer<vtkVolume16Reader> v16, QObject *parent = nullptr,
                              QObject *root = nullptr);
+    void move_slice(int plane, int direction);
+    void update_plane_position();
     void print();
     int show();
     enum MPR_Plane { MultiPlane_A = 0, MultiPlane_C, MultiPlane_T, MultiPlane_3D };
@@ -48,6 +51,8 @@ class MultiPlanarView : public QObject {
     vtkSmartPointer<vtkVolume16Reader> m_v16; // this is the data pointer, will be replaced by general dataType;
     bool m_render_ready = false;
     double m_slice_pos[3];
+    double m_slice_pos_range[6];
+    double m_spacing[3];
     QObject *m_topLevel;
     QQuickWindow *m_quickwin;
     QVTKInteractor *m_iact;
@@ -60,7 +65,13 @@ class MultiPlanarView : public QObject {
     int create_outline_actor(vtkSmartPointer<vtkRenderer> ren);
     int create_ipw_instance(vtkSmartPointer<vtkImagePlaneWidget> &ipw, int orientation,
                             vtkSmartPointer<vtkVolume16Reader> &v16, vtkRenderer *ren, QVTKInteractor *iact);
-  signals:
+
+  private:
+    vtkSmartPointer<QVTKRenderItemWidgetCallback> m_ipw_cb;
+
+  public slots:
+    void cppSlot(const QString &);
+    void cppSlot2(const int);
 };
 
 #endif // MULTIPLANARVIEW_H
