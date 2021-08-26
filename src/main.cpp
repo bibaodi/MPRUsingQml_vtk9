@@ -97,13 +97,15 @@ int main(int argc, char *argv[]) {
         msc.show();
     } else {
         qDebug() << "branch: multi planar";
-#if 1
+#if 0
         MultiPlanarView *mpr = new MultiPlanarView(v16, nullptr, topLevel);
         mpr->show();
 #else
-        MultiPlanarView mpr(v16, nullptr, topLevel);
-        mpr.show();
+        ; // MultiPlanarView mpr(v16, nullptr, topLevel);
+        // mpr.show();
 #endif
     }
+    MultiPlanarView mpr(v16, nullptr, topLevel);
+    mpr.show();
     return app.exec();
 }
