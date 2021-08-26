@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
     qDebug() << "QML2_IMPORT_PATH:" << engine.importPathList();
     engine.addImportPath("/usr/local/lib/qml");
 
-    QLatin1String qml_name("qrc:/MPR_3d_view.qml");
+    QLatin1String qml_name("qrc:/main.qml");
     if (view_type == 3) {
         qml_name = QLatin1String("qrc:/MultiSlice3x3.qml");
     } else if (view_type == 4) {

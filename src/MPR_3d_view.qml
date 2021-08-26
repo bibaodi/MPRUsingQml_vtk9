@@ -8,19 +8,7 @@ import VTK 9.0
 import QtQuick.Shapes 1.15
 
 // window containing the application
-Window {
-  // title of the application
-  title: qsTr("VTK QtQuick App")
-  id: root_3d_win
-  width: 800
-  height: 800
-  color: palette.window
-
-  SystemPalette {
-    id: palette
-    colorGroup: SystemPalette.Active
-  }
-
+Item {
   //render window
   VTKRenderWindow {
     id: vtkwindow
