@@ -18,8 +18,20 @@ Window {
     id: palette
     colorGroup: SystemPalette.Active
   }
+  Loader {
+    source: "MPR_3d_view.qml"
+    anchors.fill: parent
+  }
+  /*
   MPR_3d_view {
     id: mpr_content
     anchors.fill: parent
+  }
+  */
+  Rectangle {
+      Component.onCompleted: console.log("Completed Running!")
+      Rectangle {
+          Component.onCompleted: console.log("Nested Completed Running!")
+      }
   }
 }
