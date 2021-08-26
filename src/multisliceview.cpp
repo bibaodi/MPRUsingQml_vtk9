@@ -27,10 +27,10 @@ MultiSliceView::MultiSliceView(vtkSmartPointer<vtkVolume16Reader> _v16, QObject 
     int _r = 0, _c = 0, i = 0, ret = 0;
     for (_r = 0; _r < row_cnt; _r++) {
         for (_c = 0; _c < col_cnt; _c++) {
-            m_qvtkRen_arr[_r * row_cnt + _c] =
-                m_topLevel->findChild<QQuickVTKRenderItem *>(QString("%1%2%3").arg(renderNames).arg(_r).arg(_c));
+            QString ren_name = QString("%1%2%3").arg(renderNames).arg(_r).arg(_c);
+            m_qvtkRen_arr[_r * row_cnt + _c] = m_topLevel->findChild<QQuickVTKRenderItem *>(ren_name);
             if (!m_qvtkRen_arr[_r * row_cnt + _c]) {
-                qDebug() << "vtk widget not found! >>" << renderNames << _r << _c;
+                qDebug() << "vtk widget not found! >>" << ren_name;
                 return;
             }
         }
@@ -40,10 +40,11 @@ MultiSliceView::MultiSliceView(vtkSmartPointer<vtkVolume16Reader> _v16, QObject 
     vtkSmartPointer<vtkGenericOpenGLRenderWindow> vtk_gl_renwin =
         static_cast<vtkGenericOpenGLRenderWindow *>(vtk_ren_win.GetPointer());
     m_iact = dynamic_cast<QVTKInteractor *>(vtk_gl_renwin->GetInteractor());
+#if 0
     qDebug() << "iact print self:";
 #include <iostream>
     m_iact->PrintSelf(std::cout, vtkIndent(4));
-
+#endif
     if (_r == row_cnt && _c == col_cnt) {
         m_render_ready = true;
     }

@@ -9,12 +9,6 @@ import QtQuick.Shapes 1.15
 
 // window containing the application
 Item {
-  //render window
-  VTKRenderWindow {
-    id: vtkwindow
-    anchors.fill:parent
-  }
-
   // Content area
   GridLayout {
     id: grid_layout
@@ -163,33 +157,5 @@ Item {
           PathMove {x: root_3d_win.width*0.5; y: 0}
           PathLine { x: root_3d_win.width*0.5; y: root_3d_win.height }
       }
-  }
-  RowLayout {
-      width:parent.width / 2
-      height: 20
-      x:0
-      y: parent.height - height - 10
-    Button {
-        id: btn_select
-        objectName: "btn_select"
-        text: "act-plane"
-        Layout.preferredHeight:parent.height
-        signal qmlSignal(msg: string)
-        onClicked: {
-            btn_select.qmlSignal("Hello from QML")
-            //console.log("btn clicked.")
-        }
-    }
-    Button {
-        id: btn_translate
-        objectName: "btn_translate"
-        text:"translate"
-        Layout.preferredHeight:parent.height
-        signal qmlSignal2(msg:int )
-        onClicked: {
-            btn_translate.qmlSignal2(42)
-            //console.log("btn2 clicked.")
-        }
-    }
   }
 }

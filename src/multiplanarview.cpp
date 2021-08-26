@@ -2,6 +2,10 @@
 #include <QQuickWindow>
 #include <algorithm>
 
+#include "vtkAlgorithm.h"
+#include "vtkCellArray.h"
+#include "vtkNamedColors.h"
+
 class QVTKRenderItemWidgetCallback : public vtkCommand {
   public:
     static QVTKRenderItemWidgetCallback *New() { return new QVTKRenderItemWidgetCallback; }
@@ -136,15 +140,6 @@ MultiPlanarView::MultiPlanarView(vtkSmartPointer<vtkVolume16Reader> _v16, QObjec
     }
     //--09a add probe marker
     create_probe_marker(m_qvtkRen_arr[MultiPlane_3D]->renderer());
-    //--10 temp for event test
-    QObject *btn_select = m_topLevel->findChild<QObject *>("btn_select");
-    QObject *btn_translate = m_topLevel->findChild<QObject *>("btn_translate");
-    if (!btn_select || !btn_translate) {
-        qDebug() << "Err: btn not found!!!";
-        return;
-    }
-    QObject::connect(btn_select, SIGNAL(qmlSignal(QString)), this, SLOT(cppSlot(QString)));
-    QObject::connect(btn_translate, SIGNAL(qmlSignal2(int)), this, SLOT(cppSlot2(int)));
 
 #if 0
     qDebug() << "01iact print self:" << m_iact;
@@ -169,9 +164,6 @@ int MultiPlanarView::update_probe_point(double p) {
     m_linesource->Modified();
     return 0;
 }
-
-#include "vtkCellArray.h"
-#include "vtkNamedColors.h"
 
 int MultiPlanarView::create_probe_marker(vtkSmartPointer<vtkRenderer> ren) {
     if (!ren) {
@@ -371,16 +363,4 @@ int MultiPlanarView::show() {
     // m_iact->PrintSelf(std::cout, vtkIndent(4));
 #endif
     return 0;
-}
-
-void MultiPlanarView::cppSlot(const QString &msg) {
-    qDebug() << "Called the C++ slot with message:" << msg;
-
-    return;
-}
-
-void MultiPlanarView::cppSlot2(const int num) {
-    qDebug() << "Called the C++ slot with message void" << num;
-
-    return;
 }

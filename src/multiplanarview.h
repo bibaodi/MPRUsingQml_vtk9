@@ -75,10 +75,6 @@ class MultiPlanarView : public QObject {
 
   private:
     vtkSmartPointer<QVTKRenderItemWidgetCallback> m_ipw_cb;
-
-  public slots:
-    void cppSlot(const QString &);
-    void cppSlot2(const int);
 };
 
 #endif // MULTIPLANARVIEW_H

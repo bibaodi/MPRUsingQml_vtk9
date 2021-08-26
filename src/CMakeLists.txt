@@ -59,6 +59,8 @@ set(PROJECT_SOURCES
         multisliceview.h
         multiplanarview.cpp
         multiplanarview.h
+        threedimensionveiw.cpp
+        threedimensionveiw.h
         qml.qrc
 )
 

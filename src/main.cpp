@@ -33,12 +33,9 @@
 #include <QTimer>
 #include <QUrl>
 //---
-#include "multiplanarview.h"
-#include "multisliceview.h"
+#include "threedimensionveiw.h"
 
 const QString k_data_dir = "/home/eton/opt/data/headsq/quarter";
-
-#define view_type 2 // 2=mpr; 3=mslice3x3; 4=mslice4x4
 
 int main(int argc, char *argv[]) {
     QQuickVTKRenderWindow::setupGraphicsBackend();
@@ -52,11 +49,7 @@ int main(int argc, char *argv[]) {
     engine.addImportPath("/usr/local/lib/qml");
 
     QLatin1String qml_name("qrc:/main.qml");
-    if (view_type == 3) {
-        qml_name = QLatin1String("qrc:/MultiSlice3x3.qml");
-    } else if (view_type == 4) {
-        qml_name = QLatin1String("qrc:/MultiSlice4x4.qml");
-    }
+
     const QUrl url(qml_name);
     QObject::connect(
         &engine, &QQmlApplicationEngine::objectCreated, &app,
@@ -68,16 +61,7 @@ int main(int argc, char *argv[]) {
     engine.load(url);
     // get root window
     QObject *topLevel = engine.rootObjects().value(0);
-#if 1
-    QQuickWindow *window = qobject_cast<QQuickWindow *>(topLevel);
-    window->show(); // without this code, nothing will display --eton@210810
-    QQuickVTKRenderItem *qvtkItem = topLevel->findChild<QQuickVTKRenderItem *>("MPRView_A");
-    vtkSmartPointer<vtkRenderWindow> renw = qvtkItem->renderWindow()->renderWindow();
-    vtkSmartPointer<vtkGenericOpenGLRenderWindow> renwin =
-        static_cast<vtkGenericOpenGLRenderWindow *>(renw.GetPointer());
-    QVTKInteractor *iact = dynamic_cast<QVTKInteractor *>(renwin->GetInteractor());
-    qDebug() << "pointer in main: iact=" << iact;
-#endif
+
     // use Volume16Reader read data
     vtkSmartPointer<vtkVolume16Reader> v16 = vtkSmartPointer<vtkVolume16Reader>::New();
     v16->SetDataDimensions(64, 64);
@@ -86,25 +70,16 @@ int main(int argc, char *argv[]) {
     v16->SetImageRange(1, 93);
     v16->SetDataSpacing(3.2, 3.2, 1.5);
     v16->Update();
+    // v16->PrintSelf(std::cout, vtkIndent(4));
+    // v16->GetOutput()->PrintSelf(std::cout, vtkIndent(4));
     int extent[6] = {0};
     v16->GetOutput()->GetExtent(extent);
     qDebug() << "v16 info extent:" << extent[0] << extent[1] << extent[3] << extent[5];
     double spacing[3];
     v16->GetOutput()->GetSpacing(spacing);
     qDebug() << "v16 info spacing:" << spacing[0] << spacing[1] << spacing[2];
-    if (view_type > 2) {
-        MultiSliceView *msc = new MultiSliceView(v16, nullptr, topLevel, view_type, MultiSliceView::MultiSliceVT_C);
-        msc->show();
-    } else {
-        qDebug() << "branch: multi planar";
-#if 1
-        MultiPlanarView *mpr = new MultiPlanarView(v16, nullptr, topLevel);
-        mpr->show();
-#else
-        // the variable's life cycle just in the else branch, once out of the branch, the variable is never exist.
-        MultiPlanarView mpr(v16, nullptr, topLevel);
-        mpr.show();
-#endif
-    }
+
+    ThreeDimensionVeiw tdv(v16, nullptr, VIEW_3D_MPR4, topLevel);
+
     return app.exec();
 }
