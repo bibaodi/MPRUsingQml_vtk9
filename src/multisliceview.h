@@ -64,7 +64,6 @@ class MultiSliceView : public QObject {
     int create_slice_pos_line(float m_slice_pos, vtkSmartPointer<vtkImagePlaneWidget> &ipw0, int orientation,
                               vtkRenderer *ren);
     int reset_img_plane_view_cam(vtkRenderer *ren, int direction);
-  signals:
 };
 
 #endif // MULTISLICEVIEW_H

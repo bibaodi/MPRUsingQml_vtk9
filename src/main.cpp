@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
     v16->GetOutput()->GetSpacing(spacing);
     qDebug() << "v16 info spacing:" << spacing[0] << spacing[1] << spacing[2];
 
-    ThreeDimensionVeiw tdv(v16, nullptr, VIEW_3D_MPR4, topLevel);
+    ThreeDimensionVeiw tdv(v16, nullptr, VIEW_3D_MS4x4, topLevel);
 
     return app.exec();
 }

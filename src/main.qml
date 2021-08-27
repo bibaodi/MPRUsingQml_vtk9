@@ -20,16 +20,15 @@ Window {
     colorGroup: SystemPalette.Active
   }
 
-  //render window
-  VTKRenderWindow {
-    id: vtkwindow
-    anchors.fill:parent
-  }
 
   Loader {
     id:id_3d_view_loader
-    source: "MPR_3d_view.qml"
+    source: "MultiSlice4x4.qml"
     anchors.fill: parent
+    onLoaded:{
+        console.log("loaded signal for", id_3d_view_loader.source);
+        create_view_instance();
+    }
   }
 
   RowLayout {
@@ -73,10 +72,11 @@ Window {
             } else {
                 id_3d_view_loader.source="MultiSlice4x4.qml"
             }
-            console.log("id_3d_view_index=", global_view_index)
-            btn_translate.qmlSignal2(global_view_index)
-            //console.log("btn2 clicked.")
+            console.log("change 3d view layout:id_3d_view_index=", global_view_index)
         }
     }
+  }
+  function create_view_instance() {
+        btn_translate.qmlSignal2(global_view_index)
   }
 }

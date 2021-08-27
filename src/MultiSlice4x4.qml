@@ -8,6 +8,11 @@ import VTK 9.0
 import QtQuick.Shapes 1.15
 
 Item {
+    //render window
+    VTKRenderWindow {
+      id: vtkwindow
+      anchors.fill:parent
+    }
   // Content area
   GridLayout {
     id: grid_layout

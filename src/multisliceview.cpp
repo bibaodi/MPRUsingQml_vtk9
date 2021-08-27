@@ -5,7 +5,7 @@
 MultiSliceView::MultiSliceView(vtkSmartPointer<vtkVolume16Reader> _v16, QObject *parent, QObject *root,
                                const int layout, const int view)
     : QObject(parent), row_cnt(layout), col_cnt(layout), m_topLevel(root), current_view(view) {
-    qDebug() << "init~~~row=" << row_cnt << "col=" << col_cnt << "view=" << view;
+    qDebug() << "MultiSliceView init~~~row=" << row_cnt << "col=" << col_cnt << "slice-view=" << view;
     m_v16 = _v16;
     slice_idx_base = 0;
     slice_step = 3;
@@ -49,7 +49,6 @@ MultiSliceView::MultiSliceView(vtkSmartPointer<vtkVolume16Reader> _v16, QObject 
         m_render_ready = true;
     }
     for (i = 0; i < row_cnt * col_cnt; i++) {
-        qDebug() << "i=" << i;
         m_ipw_arr[i] = vtkSmartPointer<vtkImagePlaneWidget>::New();
 
         int _view = current_view;
@@ -73,15 +72,16 @@ MultiSliceView::MultiSliceView(vtkSmartPointer<vtkVolume16Reader> _v16, QObject 
             }
         } else {
             // view-0 first view which is orthonocal to current-view
-            qDebug() << "current_view_ortho=" << _view;
-            create_ipw_instance(m_ipw_arr[i], _view, m_v16, m_qvtkRen_arr[i]->renderer(), m_iact,
-                                slice_idx_base + i * slice_step);
+            // qDebug() << "current_view_ortho=" << _view;
+            ret = create_ipw_instance(m_ipw_arr[i], _view, m_v16, m_qvtkRen_arr[i]->renderer(), m_iact,
+                                      slice_idx_base + i * slice_step);
             if (ret) {
                 qDebug() << "ipw create error. i=0";
                 return;
             }
         }
     }
+    qDebug() << "MultiSliceView: init finish~";
 }
 
 int MultiSliceView::create_ipw_instance(vtkSmartPointer<vtkImagePlaneWidget> &ipw, int orientation,
@@ -108,19 +108,19 @@ int MultiSliceView::create_ipw_instance(vtkSmartPointer<vtkImagePlaneWidget> &ip
     m_iact->SetInteractorStyle(style);
 
     double color[3] = {0, 0, 0};
-    qDebug() << "create_ipw_instance: orientation=" << orientation;
+    // qDebug() << "create_ipw_instance: orientation=" << orientation;
     if (MultiSliceVT_T == orientation) {
-        qDebug() << "create_ipw_instance: branch=x";
+        // qDebug() << "create_ipw_instance: branch=x";
         ipw->SetPlaneOrientationToXAxes();
         ipw->SetSliceIndex(slice_idx);
         color[1] = 1;
     } else if (MultiSliceVT_C == orientation) {
-        qDebug() << "create_ipw_instance: branch=y";
+        // qDebug() << "create_ipw_instance: branch=y";
         ipw->SetPlaneOrientationToYAxes();
         ipw->SetSliceIndex(slice_idx);
         color[0] = 1;
     } else if (MultiSliceVT_A == orientation) {
-        qDebug() << "create_ipw_instance: branch= others";
+        // qDebug() << "create_ipw_instance: branch= others";
         ipw->SetPlaneOrientationToZAxes();
         ipw->SetSliceIndex(slice_idx);
         color[2] = 1;

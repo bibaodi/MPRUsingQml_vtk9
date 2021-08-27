@@ -259,17 +259,17 @@ int MultiPlanarView::create_ipw_instance(vtkSmartPointer<vtkImagePlaneWidget> &i
     ipw->RestrictPlaneToVolumeOn();
 
     double color[3] = {0, 0, 0};
-    qDebug() << "create_ipw_instance: orientation=" << orientation;
+    // qDebug() << "create_ipw_instance: orientation=" << orientation;
     if (MultiPlane_T == orientation) {
-        qDebug() << "create_ipw_instance: branch=x";
+        // qDebug() << "create_ipw_instance: branch=x";
         ipw->SetPlaneOrientationToXAxes();
         color[1] = 1;
     } else if (MultiPlane_C == orientation) {
-        qDebug() << "create_ipw_instance: branch=y";
+        // qDebug() << "create_ipw_instance: branch=y";
         ipw->SetPlaneOrientationToYAxes();
         color[0] = 1;
     } else if (MultiPlane_A == orientation) {
-        qDebug() << "create_ipw_instance: branch= others";
+        // qDebug() << "create_ipw_instance: branch= others";
         ipw->SetPlaneOrientationToZAxes();
         color[2] = 1;
     } else {

@@ -42,7 +42,6 @@ void ThreeDimensionVeiw::cppSlot2(const int num) {
     }
 
     if (qml_layout != m_view_layout) {
-        m_view_layout = qml_layout;
         release_view_instance();
         create_view_instance(qml_layout);
         qDebug() << "create new instance for :" << qml_layout;
@@ -64,21 +63,28 @@ int ThreeDimensionVeiw::create_view_instance(int v_layout) {
         MultiSliceView *msc =
             new MultiSliceView(m_img_data, nullptr, m_qml_root, msc_count, MultiSliceView::MultiSliceVT_C);
         msc->show();
-        qDebug() << "create new instance MSC";
+        qDebug() << "create new instance MSC:" << msc_count;
         m_view_ptr = msc;
+    }
+    if (m_view_layout != v_layout) {
+        qDebug() << "Error:create_V_instance: " << v_layout << m_view_layout;
+        qDebug() << "instance pointer:" << m_view_ptr;
+        m_view_layout = v_layout;
     }
     return 0;
 }
 
 int ThreeDimensionVeiw::release_view_instance() {
     if (m_view_ptr) {
-        if (m_view_layout > VIEW_3D_MPR)
+        if (m_view_layout > VIEW_3D_MPR) {
             delete (MultiPlanarView *)m_view_ptr;
-        else {
+            qDebug() << "release instance mpr:" << m_view_layout << " at:" << m_view_ptr;
+        } else {
             delete (MultiSliceView *)m_view_ptr;
+            qDebug() << "release instance msc:" << m_view_layout << " at:" << m_view_ptr;
+            ;
         }
         m_view_ptr = nullptr;
-        qDebug() << "release instance:" << m_view_layout;
     }
     return 0;
 }
