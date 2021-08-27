@@ -38,6 +38,7 @@ class MultiSliceView : public QObject {
     explicit MultiSliceView(vtkVolume16Reader *m_v16, QObject *parent = nullptr, QObject *root = nullptr,
                             const int layout = 3, const int view = 1);
     ~MultiSliceView();
+    int update_image();
     void print();
     int show();
 

@@ -25,8 +25,12 @@ ThreeDimensionVeiw::~ThreeDimensionVeiw() { qDebug() << "ThreeDimensionVeiw ~dec
 
 void ThreeDimensionVeiw::cppSlot(const QString &msg) {
     qDebug() << "Called the C++ slot with message:" << msg;
-    release_view_instance();
-    create_view_instance(m_view_layout);
+    if ("update" == msg.toLower()) {
+        if (m_view_ptr && m_view_layout < VIEW_3D_MPR) {
+            MultiSliceView *ptr = static_cast<MultiSliceView *>(m_view_ptr);
+            ptr->update_image();
+        }
+    }
     return;
 }
 

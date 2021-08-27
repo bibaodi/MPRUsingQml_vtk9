@@ -25,6 +25,7 @@ Window {
     id:id_3d_view_loader
     source: "MultiSlice4x4.qml"
     anchors.fill: parent
+    visible: status == Loader.Ready
     onLoaded:{
         if (id_3d_view_loader.status === Loader.Ready){
             console.log("loaded signal for", id_3d_view_loader.source);
@@ -43,21 +44,11 @@ Window {
     Button {
         id: btn_select
         objectName: "btn_select"
-        text: "act-plane"
+        text: "act-update"
         Layout.preferredHeight:parent.height
         signal qmlSignal(msg: string)
         onClicked: {
-            btn_select.qmlSignal("Hello from QML")
-            global_view_index = global_view_index % 3
-            if (0 === global_view_index) {
-                id_3d_view_loader.source="MPR_3d_view.qml"
-            } else if (1=== global_view_index) {
-                id_3d_view_loader.source="MultiSlice3x3.qml"
-            } else {
-                id_3d_view_loader.source="MultiSlice4x4.qml"
-            }
-            global_view_index +=1
-            console.log("id_3d_view_index=", global_view_index)
+            btn_select.qmlSignal("update")
         }
     }
     Button {
@@ -83,5 +74,11 @@ Window {
   }
   function create_view_instance() {
         btn_translate.qmlSignal2(global_view_index)
+  }
+  function update_qml_view() {
+        var _source = id_3d_view_loader.source;
+        id_3d_view_loader.source=""
+        id_3d_view_loader.source=_source
+
   }
 }

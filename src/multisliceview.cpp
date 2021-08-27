@@ -213,4 +213,19 @@ int MultiSliceView::show() {
     return 0;
 }
 
+int MultiSliceView::update_image() {
+    qDebug() << "update image";
+    for (int i = 1; i < row_cnt * col_cnt; i++) {
+        vtkSmartPointer<vtkRenderer> ren = m_qvtkRen_arr[i]->renderer();
+        if (ren) {
+            qDebug() << " ren=" << ren;
+
+            ren->PrintSelf(std::cout, vtkIndent(4));
+        } else {
+            qDebug() << " ren is not available";
+        }
+    }
+    return 0;
+}
+
 MultiSliceView::~MultiSliceView() { qDebug() << "MultiSliceView: ~deconstructured"; }
