@@ -38,11 +38,11 @@
 #define THREED_MPR_PLANE_ACT3D (THREED_MPR_PLANE_ACT + THREED_MPR_PLANE_3D)
 
 class QVTKRenderItemWidgetCallback;
+
 class MultiPlanarView : public QObject {
     Q_OBJECT
   public:
-    explicit MultiPlanarView(vtkSmartPointer<vtkVolume16Reader> v16, QObject *parent = nullptr,
-                             QObject *root = nullptr);
+    explicit MultiPlanarView(vtkVolume16Reader *v16, QObject *parent = nullptr, QObject *root = nullptr);
     void move_slice(int plane, int direction);
     void update_plane_position();
     void print();
@@ -50,28 +50,28 @@ class MultiPlanarView : public QObject {
     enum MPR_Plane { MultiPlane_A = 0, MultiPlane_C, MultiPlane_T, MultiPlane_3D };
 
   public:
-    vtkSmartPointer<vtkVolume16Reader> m_v16; // this is the data pointer, will be replaced by general dataType;
+    int m_view_ortho;
     bool m_render_ready = false;
     double m_slice_pos[3];
     double m_slice_pos_range[6];
     double m_spacing[3];
     QObject *m_topLevel;
     QQuickWindow *m_quickwin;
-    QVTKInteractor *m_iact;
-    //    vtkSmartPointer<QVTKInteractor> m_iact;
-    vtkSmartPointer<vtkImagePlaneWidget> m_ipw_arr[THREED_MPR_PLANE_ACT3D];
     QQuickVTKRenderItem *m_qvtkRen_arr[THREED_MPR_PLANE]; // 4 ren, the last has 3 ipw
-    int m_view_ortho;
+
+    vtkSmartPointer<vtkVolume16Reader> m_v16; // this is the data pointer, will be replaced by general dataType;
+    vtkSmartPointer<QVTKInteractor> m_iact;
+    vtkSmartPointer<vtkImagePlaneWidget> m_ipw_arr[THREED_MPR_PLANE_ACT3D];
 
   private:
-    vtkSmartPointer<vtkPoints> m_points;
-    vtkSmartPointer<vtkLineSource> m_linesource;
+    vtkNew<vtkPoints> m_points;
+    vtkNew<vtkLineSource> m_linesource;
     int update_probe_point(double);
-    int create_probe_marker(vtkSmartPointer<vtkRenderer> ren);
+    int create_probe_marker(vtkRenderer *ren);
     int reset_img_plane_view_cam(vtkRenderer *ren, int direction);
-    int create_outline_actor(vtkSmartPointer<vtkRenderer> ren);
-    int create_ipw_instance(vtkSmartPointer<vtkImagePlaneWidget> &ipw, int orientation,
-                            vtkSmartPointer<vtkVolume16Reader> &v16, vtkRenderer *ren, QVTKInteractor *iact);
+    int create_outline_actor(vtkRenderer *ren);
+    int create_ipw_instance(vtkImagePlaneWidget *ipw, int orientation, vtkVolume16Reader *v16, vtkRenderer *ren,
+                            QVTKInteractor *iact);
 
   private:
     vtkSmartPointer<QVTKRenderItemWidgetCallback> m_ipw_cb;

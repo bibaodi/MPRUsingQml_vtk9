@@ -35,8 +35,9 @@
 class MultiSliceView : public QObject {
     Q_OBJECT
   public:
-    explicit MultiSliceView(vtkSmartPointer<vtkVolume16Reader> m_v16, QObject *parent = nullptr,
-                            QObject *root = nullptr, const int layout = 3, const int view = 1);
+    explicit MultiSliceView(vtkVolume16Reader *m_v16, QObject *parent = nullptr, QObject *root = nullptr,
+                            const int layout = 3, const int view = 1);
+    ~MultiSliceView();
     void print();
     int show();
 
@@ -49,20 +50,18 @@ class MultiSliceView : public QObject {
     const int col_cnt;
     QObject *m_topLevel;
     QQuickWindow *m_quickwin;
-    QVTKInteractor *m_iact;
-
-  public:
+    vtkSmartPointer<QVTKInteractor> m_iact;
     vtkSmartPointer<vtkImagePlaneWidget> m_ipw_arr[ThreeDMultiSliceLayout4 * ThreeDMultiSliceLayout4];
+
+    // public:
     QQuickVTKRenderItem *m_qvtkRen_arr[ThreeDMultiSliceLayout4 * ThreeDMultiSliceLayout4];
     const int current_view;
     int m_view_ortho;
     int slice_idx_base;
     int slice_step;
-    int create_ipw_instance(vtkSmartPointer<vtkImagePlaneWidget> &ipw, int orientation,
-                            vtkSmartPointer<vtkVolume16Reader> &m_v16, vtkRenderer *ren, QVTKInteractor *m_iact,
-                            int slice_idx);
-    int create_slice_pos_line(float m_slice_pos, vtkSmartPointer<vtkImagePlaneWidget> &ipw0, int orientation,
-                              vtkRenderer *ren);
+    int create_ipw_instance(vtkImagePlaneWidget *ipw, int orientation, vtkVolume16Reader *m_v16, vtkRenderer *ren,
+                            QVTKInteractor *m_iact, int slice_idx);
+    int create_slice_pos_line(float m_slice_pos, vtkImagePlaneWidget *ipw0, int orientation, vtkRenderer *ren);
     int reset_img_plane_view_cam(vtkRenderer *ren, int direction);
 };
 

@@ -3,7 +3,7 @@
 
 #include "vtkImageData.h"
 #include "vtkMeta.h"
-#include "vtkNew.h"
+#include "vtkSmartPointer.h"
 #include "vtkVolume16Reader.h"
 #include <QObject>
 
@@ -26,7 +26,7 @@ class ThreeDimensionVeiw : public QObject {
     ~ThreeDimensionVeiw();
 
   private:
-    vtkVolume16Reader *m_img_data;
+    vtkSmartPointer<vtkVolume16Reader> m_img_data;
     int m_view_layout;
     QObject *m_qml_root;
     void *m_view_ptr;

@@ -2,8 +2,8 @@
 #include "QDebug"
 #include <QQuickWindow>
 
-MultiSliceView::MultiSliceView(vtkSmartPointer<vtkVolume16Reader> _v16, QObject *parent, QObject *root,
-                               const int layout, const int view)
+MultiSliceView::MultiSliceView(vtkVolume16Reader *_v16, QObject *parent, QObject *root, const int layout,
+                               const int view)
     : QObject(parent), row_cnt(layout), col_cnt(layout), m_topLevel(root), current_view(view) {
     qDebug() << "MultiSliceView init~~~row=" << row_cnt << "col=" << col_cnt << "slice-view=" << view;
     m_v16 = _v16;
@@ -84,9 +84,8 @@ MultiSliceView::MultiSliceView(vtkSmartPointer<vtkVolume16Reader> _v16, QObject 
     qDebug() << "MultiSliceView: init finish~";
 }
 
-int MultiSliceView::create_ipw_instance(vtkSmartPointer<vtkImagePlaneWidget> &ipw, int orientation,
-                                        vtkSmartPointer<vtkVolume16Reader> &m_v16, vtkRenderer *ren,
-                                        QVTKInteractor *m_iact, int slice_idx) {
+int MultiSliceView::create_ipw_instance(vtkImagePlaneWidget *ipw, int orientation, vtkVolume16Reader *m_v16,
+                                        vtkRenderer *ren, QVTKInteractor *m_iact, int slice_idx) {
     if (!ipw) {
         return -1;
     }
@@ -133,8 +132,8 @@ int MultiSliceView::create_ipw_instance(vtkSmartPointer<vtkImagePlaneWidget> &ip
     return 0;
 }
 
-int MultiSliceView::create_slice_pos_line(float m_slice_pos, vtkSmartPointer<vtkImagePlaneWidget> &ipw0,
-                                          int orientation, vtkRenderer *ren) {
+int MultiSliceView::create_slice_pos_line(float m_slice_pos, vtkImagePlaneWidget *ipw0, int orientation,
+                                          vtkRenderer *ren) {
     if (!ipw0) {
         return -1;
     }
@@ -213,3 +212,5 @@ int MultiSliceView::show() {
     m_quickwin->show(); // without this code, nothing will display --eton@210810
     return 0;
 }
+
+MultiSliceView::~MultiSliceView() { qDebug() << "MultiSliceView: ~deconstructured"; }

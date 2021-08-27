@@ -26,8 +26,12 @@ Window {
     source: "MultiSlice4x4.qml"
     anchors.fill: parent
     onLoaded:{
-        console.log("loaded signal for", id_3d_view_loader.source);
-        create_view_instance();
+        if (id_3d_view_loader.status === Loader.Ready){
+            console.log("loaded signal for", id_3d_view_loader.source);
+            create_view_instance();
+        } else {
+            console.log("loaded signal for", id_3d_view_loader.source, "not ready!");
+        }
     }
   }
 
@@ -63,6 +67,7 @@ Window {
         Layout.preferredHeight:parent.height
         signal qmlSignal2(msg:int )
         onClicked: {
+            //id_3d_view_loader.source='';
             global_view_index +=1
             global_view_index = global_view_index % 3
             if (0 === global_view_index) {

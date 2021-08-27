@@ -63,10 +63,10 @@ class QVTKRenderItemWidgetCallback : public vtkCommand {
     MultiPlanarView *m_mpv;
 };
 
-MultiPlanarView::MultiPlanarView(vtkSmartPointer<vtkVolume16Reader> _v16, QObject *parent, QObject *root)
+MultiPlanarView::MultiPlanarView(vtkVolume16Reader *_v16, QObject *parent, QObject *root)
     : QObject(parent), m_topLevel(root) {
-    m_points = vtkSmartPointer<vtkPoints>::New();
-    m_linesource = vtkSmartPointer<vtkLineSource>::New();
+    // m_points = vtkSmartPointer<vtkPoints>::New();
+    // m_linesource = vtkSmartPointer<vtkLineSource>::New();
     qDebug() << "MPR view init~";
     m_v16 = _v16;
     if (!m_v16) {
@@ -131,7 +131,9 @@ MultiPlanarView::MultiPlanarView(vtkSmartPointer<vtkVolume16Reader> _v16, QObjec
     //--07 make it available
     m_render_ready = true;
     //--08  create callback for all three 3d-view's ipw
-    m_ipw_cb = vtkSmartPointer<QVTKRenderItemWidgetCallback>::New();
+    if (!m_ipw_cb) {
+        m_ipw_cb = vtkSmartPointer<QVTKRenderItemWidgetCallback>::New();
+    }
     m_ipw_cb->m_mpv = this;
     for (i = 0; i < 3; i++) {
         m_ipw_cb->ipw_act[i] = m_ipw_arr[i].GetPointer();
@@ -165,7 +167,7 @@ int MultiPlanarView::update_probe_point(double p) {
     return 0;
 }
 
-int MultiPlanarView::create_probe_marker(vtkSmartPointer<vtkRenderer> ren) {
+int MultiPlanarView::create_probe_marker(vtkRenderer *ren) {
     if (!ren) {
         return -1;
     }
@@ -220,7 +222,7 @@ int MultiPlanarView::create_probe_marker(vtkSmartPointer<vtkRenderer> ren) {
     return 0;
 }
 
-int MultiPlanarView::create_outline_actor(vtkSmartPointer<vtkRenderer> ren) {
+int MultiPlanarView::create_outline_actor(vtkRenderer *ren) {
     if (!ren) {
         return -1;
     }
@@ -238,9 +240,8 @@ int MultiPlanarView::create_outline_actor(vtkSmartPointer<vtkRenderer> ren) {
     return 0;
 }
 
-int MultiPlanarView::create_ipw_instance(vtkSmartPointer<vtkImagePlaneWidget> &ipw, int orientation,
-                                         vtkSmartPointer<vtkVolume16Reader> &v16, vtkRenderer *ren,
-                                         QVTKInteractor *iact) {
+int MultiPlanarView::create_ipw_instance(vtkImagePlaneWidget *ipw, int orientation, vtkVolume16Reader *v16,
+                                         vtkRenderer *ren, QVTKInteractor *iact) {
     if (!ipw) {
         return -1;
     }
