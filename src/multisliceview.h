@@ -51,7 +51,7 @@ class MultiSliceView : public QObject {
     const int col_cnt;
     QObject *m_topLevel;
     QQuickWindow *m_quickwin;
-    vtkSmartPointer<QVTKInteractor> m_iact;
+    QVTKInteractor *m_iact; // if this is smartPointer it will stop qml's object normal release.
     vtkSmartPointer<vtkImagePlaneWidget> m_ipw_arr[ThreeDMultiSliceLayout4 * ThreeDMultiSliceLayout4];
 
     // public:

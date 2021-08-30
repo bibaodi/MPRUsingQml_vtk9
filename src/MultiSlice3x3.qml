@@ -26,7 +26,7 @@ Item {
     MultiSliceRenderItem {
       Layout.row:  0
       Layout.column: 0
-      objectName: "MultiSlice"+Layout.row+Layout.column
+      objectName: "MultiSlice9_"+Layout.row+Layout.column
       Layout.fillWidth: true
       Layout.fillHeight: true
       Layout.minimumWidth: 100
@@ -36,7 +36,7 @@ Item {
     MultiSliceRenderItem {
       Layout.row:  0
       Layout.column: 1
-      objectName: "MultiSlice"+Layout.row+Layout.column
+      objectName: "MultiSlice9_"+Layout.row+Layout.column
       Layout.fillWidth: true
       Layout.fillHeight: true
       Layout.minimumWidth: 100
@@ -45,7 +45,7 @@ Item {
     MultiSliceRenderItem {
       Layout.row:  0
       Layout.column: 2
-      objectName: "MultiSlice"+Layout.row+Layout.column
+      objectName: "MultiSlice9_"+Layout.row+Layout.column
       Layout.fillWidth: true
       Layout.fillHeight: true
       Layout.minimumWidth: 100
@@ -55,7 +55,7 @@ Item {
     MultiSliceRenderItem {
       Layout.row:  1
       Layout.column: 0
-      objectName: "MultiSlice"+Layout.row+Layout.column
+      objectName: "MultiSlice9_"+Layout.row+Layout.column
       Layout.fillWidth: true
       Layout.fillHeight: true
       Layout.minimumWidth: 100
@@ -64,7 +64,7 @@ Item {
     MultiSliceRenderItem {
       Layout.row:  1
       Layout.column: 1
-      objectName: "MultiSlice"+Layout.row+Layout.column
+      objectName: "MultiSlice9_"+Layout.row+Layout.column
       Layout.fillWidth: true
       Layout.fillHeight: true
       Layout.minimumWidth: 100
@@ -73,7 +73,7 @@ Item {
     MultiSliceRenderItem {
       Layout.row:  1
       Layout.column: 2
-      objectName: "MultiSlice"+Layout.row+Layout.column
+      objectName: "MultiSlice9_"+Layout.row+Layout.column
       Layout.fillWidth: true
       Layout.fillHeight: true
       Layout.minimumWidth: 100
@@ -82,7 +82,7 @@ Item {
     MultiSliceRenderItem {
       Layout.row:  2
       Layout.column: 0
-      objectName: "MultiSlice"+Layout.row+Layout.column
+      objectName: "MultiSlice9_"+Layout.row+Layout.column
       Layout.fillWidth: true
       Layout.fillHeight: true
       Layout.minimumWidth: 100
@@ -91,7 +91,7 @@ Item {
     MultiSliceRenderItem {
       Layout.row:  2
       Layout.column: 1
-      objectName: "MultiSlice"+Layout.row+Layout.column
+      objectName: "MultiSlice9_"+Layout.row+Layout.column
       Layout.fillWidth: true
       Layout.fillHeight: true
       Layout.minimumWidth: 100
@@ -100,7 +100,7 @@ Item {
     MultiSliceRenderItem {
       Layout.row:  2
       Layout.column: 2
-      objectName: "MultiSlice"+Layout.row+Layout.column
+      objectName: "MultiSlice9_"+Layout.row+Layout.column
       Layout.fillWidth: true
       Layout.fillHeight: true
       Layout.minimumWidth: 100

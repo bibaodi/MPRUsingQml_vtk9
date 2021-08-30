@@ -23,10 +23,19 @@ Window {
 
   Loader {
     id:id_3d_view_loader
+    objectName: "3d_view_loader"
     source: "MultiSlice4x4.qml"
     anchors.fill: parent
     visible: status == Loader.Ready
-    onLoaded:{
+    /*onLoaded:{
+        if (id_3d_view_loader.status === Loader.Ready){
+            console.log("loaded signal for", id_3d_view_loader.source);
+            create_view_instance();
+        } else {
+            console.log("loaded signal for", id_3d_view_loader.source, "not ready!");
+        }
+    }*/
+    onStatusChanged: {
         if (id_3d_view_loader.status === Loader.Ready){
             console.log("loaded signal for", id_3d_view_loader.source);
             create_view_instance();
@@ -58,7 +67,7 @@ Window {
         Layout.preferredHeight:parent.height
         signal qmlSignal2(msg:int )
         onClicked: {
-            //id_3d_view_loader.source='';
+            id_3d_view_loader.source='';
             global_view_index +=1
             global_view_index = global_view_index % 3
             if (0 === global_view_index) {

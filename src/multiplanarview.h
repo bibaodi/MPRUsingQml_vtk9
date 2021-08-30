@@ -57,10 +57,10 @@ class MultiPlanarView : public QObject {
     double m_spacing[3];
     QObject *m_topLevel;
     QQuickWindow *m_quickwin;
+    QVTKInteractor *m_iact;
     QQuickVTKRenderItem *m_qvtkRen_arr[THREED_MPR_PLANE]; // 4 ren, the last has 3 ipw
 
     vtkSmartPointer<vtkVolume16Reader> m_v16; // this is the data pointer, will be replaced by general dataType;
-    vtkSmartPointer<QVTKInteractor> m_iact;
     vtkSmartPointer<vtkImagePlaneWidget> m_ipw_arr[THREED_MPR_PLANE_ACT3D];
 
   private:

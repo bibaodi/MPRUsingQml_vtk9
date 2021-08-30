@@ -21,17 +21,21 @@ MultiSliceView::MultiSliceView(vtkVolume16Reader *_v16, QObject *parent, QObject
         qDebug() << "qml root item is nullptr";
         return;
     }
+    qDebug() << "m_topLevel = " << m_topLevel;
     m_quickwin = qobject_cast<QQuickWindow *>(m_topLevel);
 
     QString renderNames = "MultiSlice";
     int _r = 0, _c = 0, i = 0, ret = 0;
     for (_r = 0; _r < row_cnt; _r++) {
         for (_c = 0; _c < col_cnt; _c++) {
-            QString ren_name = QString("%1%2%3").arg(renderNames).arg(_r).arg(_c);
+            QString ren_name = QString("%1%2_%3%4").arg(renderNames).arg(row_cnt * col_cnt).arg(_r).arg(_c);
             m_qvtkRen_arr[_r * row_cnt + _c] = m_topLevel->findChild<QQuickVTKRenderItem *>(ren_name);
             if (!m_qvtkRen_arr[_r * row_cnt + _c]) {
                 qDebug() << "vtk widget not found! >>" << ren_name;
                 return;
+            } else {
+                qDebug() << "debug: m_qvtkRen_arr[" << _r * row_cnt + _c << "]=" << m_qvtkRen_arr[_r * row_cnt + _c]
+                         << "render=" << m_qvtkRen_arr[_r * row_cnt + _c]->renderer();
             }
         }
     }
@@ -218,11 +222,10 @@ int MultiSliceView::update_image() {
     for (int i = 1; i < row_cnt * col_cnt; i++) {
         vtkSmartPointer<vtkRenderer> ren = m_qvtkRen_arr[i]->renderer();
         if (ren) {
-            qDebug() << " ren=" << ren;
-
-            ren->PrintSelf(std::cout, vtkIndent(4));
+            qDebug() << i << "> qmlren=" << m_qvtkRen_arr[i] << ", ren=" << ren;
+            // ren->PrintSelf(std::cout, vtkIndent(4));
         } else {
-            qDebug() << " ren is not available";
+            qDebug() << i << "> ren is not available";
         }
     }
     return 0;

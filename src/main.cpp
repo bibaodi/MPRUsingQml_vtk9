@@ -60,7 +60,13 @@ int main(int argc, char *argv[]) {
         Qt::QueuedConnection);
     engine.load(url);
     // get root window
-    QObject *topLevel = engine.rootObjects().value(0);
+    QObject *root = engine.rootObjects().value(0);
+    QObject *topLevel = root->findChild<QObject *>("3d_view_loader");
+    if (!topLevel) {
+        qDebug() << "Error: not found loader!";
+        return -1;
+    }
+    topLevel = root;
 
     // use Volume16Reader read data
     vtkSmartPointer<vtkVolume16Reader> v16 = vtkSmartPointer<vtkVolume16Reader>::New();
