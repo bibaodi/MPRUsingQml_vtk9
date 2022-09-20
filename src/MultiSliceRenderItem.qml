@@ -1,6 +1,6 @@
 import QtQuick 2.0
 // import the VTK module
-import VTK 9.0
+import VTK 9.1
 
 
 VTKRenderItem {

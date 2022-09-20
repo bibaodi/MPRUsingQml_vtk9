@@ -35,7 +35,8 @@
 //---
 #include "threedimensionveiw.h"
 
-const QString k_data_dir = "/home/eton/opt/data/headsq/quarter";
+const QString k_data_dir =
+    "/media/eton/statics/08.dicom-datas/vtk-data/headsq/quarter"; //"/home/eton/opt/data/headsq/quarter";
 
 int main(int argc, char *argv[]) {
     QQuickVTKRenderWindow::setupGraphicsBackend();

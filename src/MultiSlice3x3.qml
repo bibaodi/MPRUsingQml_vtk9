@@ -4,7 +4,7 @@ import QtQuick.Controls 2.15
 import QtQuick.Window 2.15
 import QtQuick.Layouts 1.15
 // import the VTK module
-import VTK 9.0
+import VTK 9.1
 import QtQuick.Shapes 1.15
 
 // window containing the application

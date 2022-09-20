@@ -6,5 +6,6 @@
         <file>MultiSliceRenderItem.qml</file>
         <file>MultiSlice3x3.qml</file>
         <file>main.qml</file>
+        <file>MainViewPort.qml</file>
     </qresource>
 </RCC>
